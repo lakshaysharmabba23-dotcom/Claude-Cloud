@@ -7,7 +7,6 @@ import type { ZodType, ZodTypeDef } from "zod";
  * only need to supply a `callRaw` function.
  */
 export async function completeStructuredWithRetry<T>(params: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   schema: ZodType<T, ZodTypeDef, any>;
   schemaName: string;
   system?: string;
@@ -33,7 +32,6 @@ export async function completeStructuredWithRetry<T>(params: {
 
 function tryParseAndValidate<T>(
   raw: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   schema: ZodType<T, ZodTypeDef, any>
 ): { success: true; data: T } | { success: false; error: string } {
   const jsonText = extractJsonObject(raw);

@@ -30,7 +30,6 @@ export interface CompleteInput {
 }
 
 export interface CompleteStructuredInput<T> extends CompleteInput {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   schema: ZodType<T, ZodTypeDef, any>;
   schemaName: string;
 }

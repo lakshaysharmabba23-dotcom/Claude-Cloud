@@ -24,7 +24,7 @@ import type {
  * enforced in one place.
  */
 
-function useSupabase() {
+function getSupabaseClientIfConfigured() {
   const client = isSupabaseConfigured() ? getServiceSupabase() : null;
   return client;
 }
@@ -34,7 +34,7 @@ function useSupabase() {
 // -----------------------------------------------------------------------------
 
 export async function listCreators() {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     const { data, error } = await db.from("creators").select("*").order("created_at", { ascending: false });
     if (error) throw error;
@@ -44,7 +44,7 @@ export async function listCreators() {
 }
 
 export async function listSourcePosts(filter?: { creatorId?: string }) {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     let query = db.from("source_posts").select("*").order("published_at", { ascending: false });
     if (filter?.creatorId) query = query.eq("creator_id", filter.creatorId);
@@ -68,7 +68,7 @@ export interface PatternWithStats extends ContentPattern {
 }
 
 export async function listPatterns(filter?: { category?: string }): Promise<PatternWithStats[]> {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
 
   if (db) {
     let query = db.from("content_patterns").select("*");
@@ -134,7 +134,7 @@ export async function getPattern(id: string): Promise<PatternWithStats | null> {
 // -----------------------------------------------------------------------------
 
 export async function getDefaultVoiceProfile(): Promise<VoiceProfile | null> {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     const { data, error } = await db
       .from("voice_profiles")
@@ -149,7 +149,7 @@ export async function getDefaultVoiceProfile(): Promise<VoiceProfile | null> {
 }
 
 export async function listVoiceExamples(voiceProfileId: string) {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     const { data, error } = await db
       .from("voice_examples")
@@ -163,7 +163,7 @@ export async function listVoiceExamples(voiceProfileId: string) {
 }
 
 export async function saveVoiceProfile(profile: VoiceProfile): Promise<VoiceProfile> {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   const withTimestamp = { ...profile, updated_at: new Date().toISOString() };
 
   if (db) {
@@ -189,7 +189,7 @@ export async function addVoiceExamples(
   voiceProfileId: string,
   examples: Array<{ content: string; source?: string }>
 ) {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     const { data, error } = await db
       .from("voice_examples")
@@ -215,7 +215,7 @@ export async function addVoiceExamples(
 // -----------------------------------------------------------------------------
 
 export async function listDrafts(filter?: { status?: DraftStatus }) {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     let query = db.from("drafts").select("*").order("created_at", { ascending: false });
     if (filter?.status) query = query.eq("status", filter.status);
@@ -229,7 +229,7 @@ export async function listDrafts(filter?: { status?: DraftStatus }) {
 }
 
 export async function getDraft(id: string) {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     const { data, error } = await db.from("drafts").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
@@ -239,7 +239,7 @@ export async function getDraft(id: string) {
 }
 
 export async function createDraft(draft: Draft) {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   const now = new Date().toISOString();
 
   if (db) {
@@ -265,7 +265,7 @@ export async function createDraft(draft: Draft) {
 }
 
 export async function updateDraft(id: string, patch: Partial<Draft>) {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   const now = new Date().toISOString();
 
   if (db) {
@@ -298,7 +298,7 @@ export async function publishDraft(draftId: string) {
     throw new Error(`Draft ${draftId} must be approved by a human before it can be recorded as published.`);
   }
 
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   const record = {
     id: `local-published-${Date.now()}`,
     draft_id: draftId,
@@ -327,7 +327,7 @@ export async function publishDraft(draftId: string) {
 }
 
 export async function listPublishedPosts() {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     const { data, error } = await db.from("published_posts").select("*").order("published_at", { ascending: false });
     if (error) throw error;
@@ -342,7 +342,7 @@ export async function listPublishedPosts() {
 
 export async function addPerformanceSnapshot(input: PerformanceSnapshotInput) {
   const engagement_rate = calculateEngagementRate(input);
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   const record = {
     id: `local-perf-${Date.now()}`,
     published_post_id: input.published_post_id,
@@ -367,7 +367,7 @@ export async function addPerformanceSnapshot(input: PerformanceSnapshotInput) {
 }
 
 export async function listPerformance(publishedPostId?: string) {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     let query = db.from("post_performance").select("*").order("captured_at", { ascending: true });
     if (publishedPostId) query = query.eq("published_post_id", publishedPostId);
@@ -386,7 +386,7 @@ export async function listPerformance(publishedPostId?: string) {
 // -----------------------------------------------------------------------------
 
 export async function recomputePatternPerformance(): Promise<PatternPerformanceRow[]> {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
 
   if (db) {
     const [{ data: published }, { data: performance }] = await Promise.all([
@@ -442,7 +442,7 @@ export async function recomputePatternPerformance(): Promise<PatternPerformanceR
 }
 
 export async function listPatternPerformance(): Promise<PatternPerformanceRow[]> {
-  const db = useSupabase();
+  const db = getSupabaseClientIfConfigured();
   if (db) {
     const { data, error } = await db.from("pattern_performance").select("*");
     if (error) throw error;
