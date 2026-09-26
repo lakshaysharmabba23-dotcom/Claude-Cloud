@@ -24,7 +24,7 @@ export function getAIProvider(): AIProvider {
       cached = new OpenAIProvider(env.aiModel, env.openaiApiKey);
       break;
     case "openrouter":
-      cached = new OpenRouterProvider(env.aiModel, env.openrouterApiKey);
+      cached = new OpenRouterProvider(env.openrouterModels, env.openrouterApiKey);
       break;
     default:
       cached = new MockAIProvider();

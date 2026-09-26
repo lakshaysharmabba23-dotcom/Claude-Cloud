@@ -175,6 +175,20 @@ const MOCK_BUILDERS: Record<string, MockBuilder> = {
     };
   },
 
+  research_facts: (prompt) => {
+    const textMatch = prompt.match(/TEXT:\n([\s\S]*)/);
+    const text = textMatch?.[1] ?? prompt;
+    const sentences = text
+      .split(/[.\n]/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 20)
+      .slice(0, 3);
+    return {
+      facts: sentences,
+      summary: sentences[0] ?? "No extractable content."
+    };
+  },
+
   critic_result: (prompt) => {
     // The evaluation prompt (see src/lib/critic/llm.ts) wraps the draft
     // between "DRAFT:\n---\n" and a closing "---" line - extract just that

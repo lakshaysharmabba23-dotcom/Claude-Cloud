@@ -53,11 +53,13 @@ Three pluggable interfaces keep the pipeline vendor-agnostic:
 
 | Interface | File | Real implementation(s) | Mock |
 |---|---|---|---|
-| `ResearchProvider` | `src/lib/research/provider.ts` | Firecrawl | `MockResearchProvider` |
-| `AIProvider` | `src/lib/ai/provider.ts` | Anthropic, OpenAI, OpenRouter | `MockAIProvider` |
+| `ResearchProvider` | `src/lib/research/provider.ts` | SerpAPI (default), Firecrawl | `MockResearchProvider` |
+| `AIProvider` | `src/lib/ai/provider.ts` | OpenRouter (default, multi-model fallback), Anthropic, OpenAI | `MockAIProvider` |
 | `EmbeddingProvider` | `src/lib/embeddings/provider.ts` | OpenAI embeddings | `MockEmbeddingProvider` |
 
 Each has exactly one factory (`getResearchProvider()`, `getAIProvider()`, `getEmbeddingProvider()`) that resolves the mock when `DEMO_MODE=true`. Nothing else in the app imports a concrete provider class directly.
+
+**OpenRouter fallback chain:** free-tier OpenRouter models get rate-limited or pulled often, so `OpenRouterProvider` is configured with an ordered list of models (`OPENROUTER_MODELS`), not one fixed model. Every call tries model #1 first and falls through to #2, #3, ... on any failure - network error, non-2xx response, or the response failing schema validation twice. The actual "try each, stop at first success" logic lives in one pure, unit-tested function (`src/lib/ai/fallback.ts`'s `runWithFallback`) shared by anything that ever needs a fallback chain, not duplicated inline.
 
 ## Data access
 

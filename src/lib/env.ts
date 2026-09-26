@@ -21,10 +21,11 @@ export const env = {
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
 
-  researchProvider: (process.env.RESEARCH_PROVIDER ?? "firecrawl") as "firecrawl" | "mock",
+  researchProvider: (process.env.RESEARCH_PROVIDER ?? "serpapi") as "serpapi" | "firecrawl" | "mock",
   firecrawlApiKey: process.env.FIRECRAWL_API_KEY ?? "",
+  serpApiKey: process.env.SERPAPI_API_KEY ?? "",
 
-  aiProvider: (process.env.AI_PROVIDER ?? "anthropic") as
+  aiProvider: (process.env.AI_PROVIDER ?? "openrouter") as
     | "anthropic"
     | "openai"
     | "openrouter"
@@ -33,6 +34,29 @@ export const env = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
   openrouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
+  /**
+   * OpenRouter fallback chain: tried in order, first one that responds
+   * successfully wins. Free-tier OpenRouter models are frequently rate
+   * limited or temporarily pulled, so a single-model setup breaks often -
+   * this list exists specifically so the app "instantly switches" to the
+   * next model instead of failing the whole request. Override via
+   * OPENROUTER_MODELS (comma-separated) - the defaults below are examples;
+   * check https://openrouter.ai/models?max_price=0 for the current free
+   * lineup, since it changes over time.
+   */
+  openrouterModels: (
+    process.env.OPENROUTER_MODELS ??
+    [
+      "meta-llama/llama-3.3-70b-instruct:free",
+      "deepseek/deepseek-chat-v3.1:free",
+      "google/gemini-2.0-flash-exp:free",
+      "qwen/qwen-2.5-72b-instruct:free",
+      "mistralai/mistral-small-3.1-24b-instruct:free"
+    ].join(",")
+  )
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean),
 
   embeddingProvider: (process.env.EMBEDDING_PROVIDER ?? "openai") as "openai" | "mock",
   embeddingModel: process.env.EMBEDDING_MODEL ?? "text-embedding-3-small",

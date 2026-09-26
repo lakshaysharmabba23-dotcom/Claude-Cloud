@@ -2,6 +2,7 @@ import { env } from "@/lib/env";
 import type { ResearchProvider } from "./provider";
 import { MockResearchProvider } from "./mock";
 import { FirecrawlProvider } from "./firecrawl";
+import { SerpApiProvider } from "./serpapi";
 import { normalizeDocument, dedupeDocuments, type NormalizedDocument } from "@/lib/normalization/normalize";
 import type { ResearchRequest } from "@/lib/types/schemas";
 
@@ -9,10 +10,21 @@ let cached: ResearchProvider | null = null;
 
 export function getResearchProvider(): ResearchProvider {
   if (cached) return cached;
+
   if (env.demoMode || env.researchProvider === "mock") {
     cached = new MockResearchProvider();
-  } else {
-    cached = new FirecrawlProvider(env.firecrawlApiKey);
+    return cached;
+  }
+
+  switch (env.researchProvider) {
+    case "serpapi":
+      cached = new SerpApiProvider(env.serpApiKey);
+      break;
+    case "firecrawl":
+      cached = new FirecrawlProvider(env.firecrawlApiKey);
+      break;
+    default:
+      cached = new MockResearchProvider();
   }
   return cached;
 }

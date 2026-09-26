@@ -17,8 +17,11 @@ interface ResearchProvider {
 
 ## Implementations
 
-- **`FirecrawlProvider`** (`firecrawl.ts`) - calls the Firecrawl API (`/search`, `/scrape`). Firecrawl only fetches publicly accessible pages, which keeps this provider aligned with the "no authenticated/private scraping" rule without any extra guardrail code - it's structurally true because we never pass Firecrawl any session/auth material.
+- **`SerpApiProvider`** (`serpapi.ts`) - the default real provider. [SerpAPI](https://serpapi.com) only returns Google search results (links, titles, snippets) - it doesn't fetch or clean page content, and has no built-in fact-extraction feature. So this provider calls SerpAPI for `search()`, then fetches each URL itself and runs it through a small dependency-free HTML-to-text extractor (`html-extract.ts`) for `scrape()`, and asks the configured `AIProvider` to pull out facts from that text for `extractStructured()` (same "only summarize what's actually there" prompt discipline as everywhere else).
+- **`FirecrawlProvider`** (`firecrawl.ts`) - an alternative provider (`RESEARCH_PROVIDER=firecrawl`) that handles scraping and structured extraction itself via Firecrawl's own API, rather than a plain fetch + the AI provider.
 - **`MockResearchProvider`** (`mock.ts`) - deterministic (seeded PRNG keyed on the query/URL), returns content that's unmistakably `[FICTIONAL]` and attributed to invented outlets. Used whenever `DEMO_MODE=true` or `RESEARCH_PROVIDER=mock`.
+
+Both real providers only ever fetch public URLs with no session/auth material attached, which is what keeps them aligned with the "no authenticated/private scraping" rule structurally, not just by convention.
 
 Adding a second real provider (say, a different search API) means writing one new class against this interface and adding one case to `getResearchProvider()` in `index.ts` - no other file changes.
 
