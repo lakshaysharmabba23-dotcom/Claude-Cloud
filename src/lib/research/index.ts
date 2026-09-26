@@ -3,6 +3,7 @@ import type { ResearchProvider } from "./provider";
 import { MockResearchProvider } from "./mock";
 import { FirecrawlProvider } from "./firecrawl";
 import { SerpApiProvider } from "./serpapi";
+import { SeoPipelineProvider } from "./seoPipeline";
 import { normalizeDocument, dedupeDocuments, type NormalizedDocument } from "@/lib/normalization/normalize";
 import type { ResearchRequest } from "@/lib/types/schemas";
 
@@ -17,6 +18,9 @@ export function getResearchProvider(): ResearchProvider {
   }
 
   switch (env.researchProvider) {
+    case "seo-pipeline":
+      cached = new SeoPipelineProvider(env.seoPipelineBaseUrl);
+      break;
     case "serpapi":
       cached = new SerpApiProvider(env.serpApiKey);
       break;

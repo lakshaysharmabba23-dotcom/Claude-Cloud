@@ -21,9 +21,15 @@ export const env = {
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
 
-  researchProvider: (process.env.RESEARCH_PROVIDER ?? "serpapi") as "serpapi" | "firecrawl" | "mock",
+  researchProvider: (process.env.RESEARCH_PROVIDER ?? "seo-pipeline") as
+    | "seo-pipeline"
+    | "serpapi"
+    | "firecrawl"
+    | "mock",
   firecrawlApiKey: process.env.FIRECRAWL_API_KEY ?? "",
   serpApiKey: process.env.SERPAPI_API_KEY ?? "",
+  /** Base URL of the self-hosted SERP+scrape API (no key needed on this app's side). */
+  seoPipelineBaseUrl: process.env.SEO_PIPELINE_BASE_URL ?? "",
 
   aiProvider: (process.env.AI_PROVIDER ?? "openrouter") as
     | "anthropic"

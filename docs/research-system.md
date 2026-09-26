@@ -17,11 +17,12 @@ interface ResearchProvider {
 
 ## Implementations
 
-- **`SerpApiProvider`** (`serpapi.ts`) - the default real provider. [SerpAPI](https://serpapi.com) only returns Google search results (links, titles, snippets) - it doesn't fetch or clean page content, and has no built-in fact-extraction feature. So this provider calls SerpAPI for `search()`, then fetches each URL itself and runs it through a small dependency-free HTML-to-text extractor (`html-extract.ts`) for `scrape()`, and asks the configured `AIProvider` to pull out facts from that text for `extractStructured()` (same "only summarize what's actually there" prompt discipline as everywhere else).
-- **`FirecrawlProvider`** (`firecrawl.ts`) - an alternative provider (`RESEARCH_PROVIDER=firecrawl`) that handles scraping and structured extraction itself via Firecrawl's own API, rather than a plain fetch + the AI provider.
+- **`SeoPipelineProvider`** (`seoPipeline.ts`) - the default real provider. Talks to a self-hosted SERP-search + scrape REST API (`SEO_PIPELINE_BASE_URL`, backed by Jina on the server side - no API key needed on this app's side). It calls that API's `/api/serp` for `search()` and `/api/scrape` for `scrape()`, then, since that API has no fact-extraction feature either, asks the configured `AIProvider` to pull facts out of the scraped text for `extractStructured()`.
+- **`SerpApiProvider`** (`serpapi.ts`) - an alternative provider (`RESEARCH_PROVIDER=serpapi`) using the commercial [SerpAPI](https://serpapi.com) service for search, with the same fetch + `html-extract.ts` + AI-extraction approach for scraping.
+- **`FirecrawlProvider`** (`firecrawl.ts`) - another alternative (`RESEARCH_PROVIDER=firecrawl`) that handles scraping and structured extraction itself via Firecrawl's own API.
 - **`MockResearchProvider`** (`mock.ts`) - deterministic (seeded PRNG keyed on the query/URL), returns content that's unmistakably `[FICTIONAL]` and attributed to invented outlets. Used whenever `DEMO_MODE=true` or `RESEARCH_PROVIDER=mock`.
 
-Both real providers only ever fetch public URLs with no session/auth material attached, which is what keeps them aligned with the "no authenticated/private scraping" rule structurally, not just by convention.
+All real providers only ever fetch public URLs with no session/auth material attached, which is what keeps them aligned with the "no authenticated/private scraping" rule structurally, not just by convention.
 
 Adding a second real provider (say, a different search API) means writing one new class against this interface and adding one case to `getResearchProvider()` in `index.ts` - no other file changes.
 
