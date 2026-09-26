@@ -51,7 +51,15 @@ export async function seedSupabase(supabase: SupabaseClient): Promise<SeedResult
   await upsert("post_patterns", SEED_POST_PATTERNS);
   await upsert("voice_profiles", [SEED_VOICE_PROFILE]);
   await upsert("voice_examples", SEED_VOICE_EXAMPLES);
-  await upsert("drafts", SEED_DRAFTS);
+  // The drafts.critique column is `not null default '{}'::jsonb` - passing
+  // an explicit null (as the seed data does, to satisfy the TS Draft type's
+  // "no critique yet" case) overrides that default and trips the not-null
+  // constraint on insert, so it's coerced to {} right here at the DB
+  // boundary rather than widening the shared, TS-typed seed data.
+  await upsert(
+    "drafts",
+    SEED_DRAFTS.map((d) => ({ ...d, critique: d.critique ?? {} }))
+  );
   await upsert(
     "published_posts",
     SEED_PUBLISHED_POSTS.map(({ patternId: _p, topic: _t, audience: _a, ...post }) => post)
