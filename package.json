@@ -5,7 +5,7 @@
   "description": "An AI-powered content intelligence system for LinkedIn writing: research, pattern extraction, voice modeling, grounded generation, critique, and performance feedback.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

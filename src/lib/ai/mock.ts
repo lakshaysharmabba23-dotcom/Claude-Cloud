@@ -176,9 +176,17 @@ const MOCK_BUILDERS: Record<string, MockBuilder> = {
   },
 
   critic_result: (prompt) => {
-    const hasQuestionCta = /\?\s*$/.test(prompt.trim());
-    const mentionsFictionalSource = prompt.includes("[FICTIONAL]") || prompt.includes("http");
-    const wordCount = countWords(prompt);
+    // The evaluation prompt (see src/lib/critic/llm.ts) wraps the draft
+    // between "DRAFT:\n---\n" and a closing "---" line - extract just that
+    // section so checks reason about the draft itself, not the surrounding
+    // instructions (which also end in punctuation/words that would
+    // otherwise skew a naive whole-prompt heuristic).
+    const draftMatch = prompt.match(/DRAFT:\n---\n([\s\S]*?)\n---/);
+    const draft = draftMatch?.[1] ?? prompt;
+
+    const hasQuestionCta = /\?\s*$/.test(draft.trim());
+    const mentionsFictionalSource = draft.includes("[FICTIONAL]") || draft.includes("http");
+    const wordCount = countWords(draft);
 
     const issues: string[] = [];
     const strengths: string[] = [];
