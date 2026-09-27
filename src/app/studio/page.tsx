@@ -1,4 +1,5 @@
 import { listPatterns } from "@/lib/data/repository";
+import { env } from "@/lib/env";
 import { StudioClient } from "./studio-client";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export default async function StudioPage() {
           approve before anything is recorded as published.
         </p>
       </div>
-      <StudioClient patterns={patterns} />
+      <StudioClient patterns={patterns} demoMode={env.demoMode} />
     </div>
   );
 }

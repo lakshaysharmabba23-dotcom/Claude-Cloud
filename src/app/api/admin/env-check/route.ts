@@ -40,6 +40,8 @@ export async function GET(request: Request) {
     "OPENAI_API_KEY",
     "AI_MODEL",
     "EMBEDDING_PROVIDER",
+    "TRIGGER_SECRET_KEY",
+    "TRIGGER_PROJECT_ID",
     "SEED_ADMIN_TOKEN"
   ] as const;
 

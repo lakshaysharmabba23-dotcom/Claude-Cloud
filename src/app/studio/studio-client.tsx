@@ -41,7 +41,14 @@ const CHECK_LABELS: Record<keyof CriticResult["checks"], string> = {
   no_generic_language: "No generic language"
 };
 
-export function StudioClient({ patterns }: { patterns: PatternWithStats[] }) {
+const MAX_ASYNC_WAIT_MS = 4 * 60 * 1000;
+const POLL_INTERVAL_MS = 3000;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStats[]; demoMode: boolean }) {
   const [topic, setTopic] = useState("GTM engineering");
   const [audience, setAudience] = useState("B2B SaaS founders");
   const [objective, setObjective] = useState("Generate discussion");
@@ -49,37 +56,94 @@ export function StudioClient({ patterns }: { patterns: PatternWithStats[] }) {
   const [researchDepth, setResearchDepth] = useState<"quick" | "standard" | "deep">("standard");
 
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<StudioResponse | null>(null);
   const [content, setContent] = useState("");
   const [draftStatus, setDraftStatus] = useState<string>("critiqued");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
+  function applyResult(data: StudioResponse) {
+    setResult(data);
+    setContent(data.generated.content);
+    setDraftStatus(data.draft.status);
+  }
+
+  const requestBody = {
+    topic,
+    audience,
+    objective,
+    selectedPatternId: patternId || undefined,
+    researchDepth
+  };
+
+  /** DEMO_MODE only: mock providers respond in milliseconds, so a single request round trip is safe. */
+  async function generateSync() {
+    const res = await fetch("/api/studio/generate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(requestBody)
+    });
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(data.error?.formErrors?.join(", ") ?? data.error ?? "Generation failed.");
+    applyResult(data);
+  }
+
+  /**
+   * Real providers (a live web search, a page scrape, several sequential AI
+   * calls) can take well over a minute - too long for a normal HTTP request
+   * against Vercel's serverless function timeout. Runs the pipeline as a
+   * Trigger.dev background job instead and polls for the result, which has
+   * no such time limit.
+   */
+  async function generateViaBackgroundJob() {
+    setProgress("Starting background generation job...");
+    const startRes = await fetch("/api/studio/generate-async", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(requestBody)
+    });
+    const startData = await parseJsonResponse(startRes);
+    if (!startRes.ok) {
+      throw new Error(startData.error?.formErrors?.join(", ") ?? startData.error ?? "Could not start generation.");
+    }
+    const runId = startData.runId as string;
+
+    const deadline = Date.now() + MAX_ASYNC_WAIT_MS;
+    while (Date.now() < deadline) {
+      await sleep(POLL_INTERVAL_MS);
+      const statusRes = await fetch(`/api/studio/generate-async/${runId}`);
+      const statusData = await parseJsonResponse(statusRes);
+      if (!statusRes.ok || statusData.error) {
+        throw new Error(statusData.error ?? "Generation failed.");
+      }
+      setProgress(`Status: ${statusData.status}`);
+      if (statusData.status === "COMPLETED") {
+        applyResult(statusData.output);
+        return;
+      }
+    }
+    throw new Error(
+      `Generation is taking longer than expected (run ${runId}). Check the Trigger.dev dashboard, or try again.`
+    );
+  }
+
   async function generate() {
     setLoading(true);
     setError(null);
     setActionMessage(null);
+    setProgress(null);
     try {
-      const res = await fetch("/api/studio/generate", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          topic,
-          audience,
-          objective,
-          selectedPatternId: patternId || undefined,
-          researchDepth
-        })
-      });
-      const data = await parseJsonResponse(res);
-      if (!res.ok) throw new Error(data.error?.formErrors?.join(", ") ?? data.error ?? "Generation failed.");
-      setResult(data);
-      setContent(data.generated.content);
-      setDraftStatus(data.draft.status);
+      if (demoMode) {
+        await generateSync();
+      } else {
+        await generateViaBackgroundJob();
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   }
 
@@ -153,8 +217,13 @@ export function StudioClient({ patterns }: { patterns: PatternWithStats[] }) {
           </select>
         </div>
         <button className="btn-primary w-full" onClick={generate} disabled={loading}>
-          {loading ? "Researching + generating..." : "Generate"}
+          {loading ? progress ?? "Researching + generating..." : "Generate"}
         </button>
+        {loading && !demoMode && (
+          <p className="text-xs text-ink-400">
+            Running as a background job - this can take a minute or two with real providers.
+          </p>
+        )}
         {error && <p className="text-sm text-bad">{error}</p>}
       </section>
 
