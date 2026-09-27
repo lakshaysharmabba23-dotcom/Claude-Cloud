@@ -25,10 +25,18 @@ export interface StudioResult {
   relevantVoiceExamples: string[];
 }
 
+/**
+ * Each research document costs one AI call (fact extraction), on top of one
+ * call for generation and one for critique - so total AI calls per
+ * "Generate" click is roughly (maxResults + 2). Kept low by default
+ * because Google's Gemini free tier caps out at 5 requests/minute/model
+ * (see docs/generation.md); a real paid provider tier can afford deeper
+ * research - raise these if AI_PROVIDER isn't rate-limited that tightly.
+ */
 const DEPTH_TO_MAX_RESULTS: Record<NonNullable<StudioRequest["researchDepth"]>, number> = {
-  quick: 3,
-  standard: 6,
-  deep: 10
+  quick: 1,
+  standard: 2,
+  deep: 3
 };
 
 /**
