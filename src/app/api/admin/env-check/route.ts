@@ -32,6 +32,11 @@ export async function GET(request: Request) {
     "AI_PROVIDER",
     "OPENROUTER_API_KEY",
     "OPENROUTER_MODELS",
+    "GOOGLE_API_KEY",
+    "GOOGLE_AI_MODEL",
+    "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY",
+    "AI_MODEL",
     "EMBEDDING_PROVIDER",
     "SEED_ADMIN_TOKEN"
   ] as const;
