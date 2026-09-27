@@ -36,6 +36,7 @@ export const env = {
     | "anthropic"
     | "openai"
     | "openrouter"
+    | "nvidia"
     | "mock",
   aiModel: process.env.AI_MODEL ?? "claude-opus-5-5",
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
@@ -44,6 +45,9 @@ export const env = {
   googleApiKey: process.env.GOOGLE_API_KEY ?? "",
   /** Google's "-latest" aliases track the current stable model without needing updates as dated versions rotate out. */
   googleAiModel: process.env.GOOGLE_AI_MODEL ?? "gemini-flash-latest",
+  nvidiaApiKey: process.env.NVIDIA_API_KEY ?? "",
+  /** A current instruct model on NVIDIA's hosted catalog - see https://build.nvidia.com for the full list. */
+  nvidiaModel: process.env.NVIDIA_AI_MODEL ?? "deepseek-ai/deepseek-v4.1-flash",
   /**
    * OpenRouter fallback chain: tried in order, first one that responds
    * successfully wins. Free-tier OpenRouter models are frequently rate

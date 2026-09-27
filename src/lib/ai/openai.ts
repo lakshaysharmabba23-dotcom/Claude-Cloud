@@ -21,7 +21,13 @@ export class OpenAIProvider implements AIProvider {
     this.baseUrl = baseUrl;
   }
 
-  protected async callRaw(system: string | undefined, prompt: string, maxTokens = 2048, temperature = 0.7) {
+  protected async callRaw(
+    system: string | undefined,
+    prompt: string,
+    maxTokens = 2048,
+    temperature = 0.7,
+    jsonMode = false
+  ) {
     const messages = [
       ...(system ? [{ role: "system", content: system }] : []),
       { role: "user", content: prompt }
@@ -37,7 +43,11 @@ export class OpenAIProvider implements AIProvider {
         model: this.model,
         messages,
         max_tokens: maxTokens,
-        temperature
+        temperature,
+        // Forces strict JSON output on models/providers that support
+        // OpenAI-style structured outputs. Only set for completeStructured()
+        // callers; harmlessly ignored by providers that don't understand it.
+        ...(jsonMode ? { response_format: { type: "json_object" } } : {})
       })
     });
 
@@ -60,7 +70,7 @@ export class OpenAIProvider implements AIProvider {
       schemaName: input.schemaName,
       system: input.system,
       prompt: input.prompt,
-      callRaw: (system, prompt) => this.callRaw(system, prompt, input.maxTokens, input.temperature)
+      callRaw: (system, prompt) => this.callRaw(system, prompt, input.maxTokens, input.temperature, true)
     });
   }
 }

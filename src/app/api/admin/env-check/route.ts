@@ -34,6 +34,8 @@ export async function GET(request: Request) {
     "OPENROUTER_MODELS",
     "GOOGLE_API_KEY",
     "GOOGLE_AI_MODEL",
+    "NVIDIA_API_KEY",
+    "NVIDIA_AI_MODEL",
     "ANTHROPIC_API_KEY",
     "OPENAI_API_KEY",
     "AI_MODEL",
