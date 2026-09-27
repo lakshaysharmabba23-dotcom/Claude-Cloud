@@ -46,8 +46,15 @@ export const env = {
   /** Google's "-latest" aliases track the current stable model without needing updates as dated versions rotate out. */
   googleAiModel: process.env.GOOGLE_AI_MODEL ?? "gemini-flash-latest",
   nvidiaApiKey: process.env.NVIDIA_API_KEY ?? "",
-  /** A current instruct model on NVIDIA's hosted catalog - see https://build.nvidia.com for the full list. */
-  nvidiaModel: process.env.NVIDIA_AI_MODEL ?? "deepseek-ai/deepseek-v4.1-flash",
+  /**
+   * A small, fast, plain-instruct model - deliberately NOT a reasoning
+   * model (e.g. deepseek-* on NVIDIA's catalog), which writes out a long
+   * internal "thinking" pass before answering and can take 20-40s+ per
+   * call. This pipeline makes 3+ sequential AI calls per request, which
+   * blows past Vercel's serverless function timeout with a reasoning
+   * model. See https://build.nvidia.com for the full catalog.
+   */
+  nvidiaModel: process.env.NVIDIA_AI_MODEL ?? "meta/llama-3.1-8b-instruct",
   /**
    * OpenRouter fallback chain: tried in order, first one that responds
    * successfully wins. Free-tier OpenRouter models are frequently rate
