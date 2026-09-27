@@ -4,6 +4,7 @@ import { MockAIProvider } from "./mock";
 import { AnthropicProvider } from "./anthropic";
 import { OpenAIProvider } from "./openai";
 import { OpenRouterProvider } from "./openrouter";
+import { GoogleAIProvider } from "./google";
 
 let cached: AIProvider | null = null;
 
@@ -17,6 +18,9 @@ export function getAIProvider(): AIProvider {
   }
 
   switch (env.aiProvider) {
+    case "google":
+      cached = new GoogleAIProvider(env.googleAiModel, env.googleApiKey);
+      break;
     case "anthropic":
       cached = new AnthropicProvider(env.aiModel, env.anthropicApiKey);
       break;

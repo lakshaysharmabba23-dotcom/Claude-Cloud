@@ -31,7 +31,8 @@ export const env = {
   /** Base URL of the self-hosted SERP+scrape API (no key needed on this app's side). */
   seoPipelineBaseUrl: process.env.SEO_PIPELINE_BASE_URL ?? "",
 
-  aiProvider: (process.env.AI_PROVIDER ?? "openrouter") as
+  aiProvider: (process.env.AI_PROVIDER ?? "google") as
+    | "google"
     | "anthropic"
     | "openai"
     | "openrouter"
@@ -40,6 +41,9 @@ export const env = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
   openrouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
+  googleApiKey: process.env.GOOGLE_API_KEY ?? "",
+  /** Google's "-latest" aliases track the current stable model without needing updates as dated versions rotate out. */
+  googleAiModel: process.env.GOOGLE_AI_MODEL ?? "gemini-flash-latest",
   /**
    * OpenRouter fallback chain: tried in order, first one that responds
    * successfully wins. Free-tier OpenRouter models are frequently rate
