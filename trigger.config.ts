@@ -7,14 +7,15 @@ import { defineConfig } from "@trigger.dev/sdk/v3";
  * setTimeout/queue code, so they get durable retries and structured logs
  * for free.
  *
- * Set TRIGGER_PROJECT_ID / TRIGGER_SECRET_KEY in .env.local to run these
- * against a real Trigger.dev project (https://trigger.dev). Nothing in the
- * Next.js app itself depends on Trigger.dev being configured - the API
- * routes call the same lib/ functions directly for the synchronous, low-
- * latency parts of the pipeline (see docs/architecture.md).
+ * The project ref below isn't a secret (it's just an identifier, like a
+ * repo name) - TRIGGER_PROJECT_ID can still override it if you ever create
+ * a second Trigger.dev project. TRIGGER_SECRET_KEY (set in Vercel/.env.local)
+ * is the actual credential the deployed app uses to trigger and poll runs
+ * against this project. Nothing in the Next.js app itself depends on
+ * Trigger.dev being configured in DEMO_MODE - see docs/architecture.md.
  */
 export default defineConfig({
-  project: process.env.TRIGGER_PROJECT_ID ?? "proj_placeholder",
+  project: process.env.TRIGGER_PROJECT_ID ?? "proj_pxqxxhivlhectpbltqei",
   dirs: ["./src/trigger"],
   maxDuration: 300,
   retries: {
