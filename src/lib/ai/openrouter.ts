@@ -38,7 +38,8 @@ export class OpenRouterProvider implements AIProvider {
     system: string | undefined,
     prompt: string,
     maxTokens = 2048,
-    temperature = 0.7
+    temperature = 0.7,
+    jsonMode = false
   ): Promise<string> {
     const messages = [
       ...(system ? [{ role: "system", content: system }] : []),
@@ -62,7 +63,14 @@ export class OpenRouterProvider implements AIProvider {
         // `exclude: true` asks OpenRouter to hide reasoning tokens from the
         // response for models that support it; ignored harmlessly by ones
         // that don't.
-        reasoning: { exclude: true }
+        reasoning: { exclude: true },
+        // Forces strict JSON output on models/providers that support
+        // OpenAI-style structured outputs - more reliable than prompt
+        // instructions alone. Only set for completeStructured() callers;
+        // a provider that doesn't understand the field ignores it, and one
+        // that rejects it outright just fails over to the next model like
+        // any other error.
+        ...(jsonMode ? { response_format: { type: "json_object" } } : {})
       })
     });
 
@@ -91,7 +99,7 @@ export class OpenRouterProvider implements AIProvider {
         system: input.system,
         prompt: input.prompt,
         callRaw: (system, prompt) =>
-          this.callRawWithModel(model, system, prompt, input.maxTokens, input.temperature)
+          this.callRawWithModel(model, system, prompt, input.maxTokens, input.temperature, true)
       })
     );
   }

@@ -54,13 +54,18 @@ export const env = {
     process.env.OPENROUTER_MODELS ??
     [
       "google/gemma-4-31b-it:free",
+      "cohere/north-mini-code:free",
+      "nvidia/nemotron-3.5-lightning:free",
       "qwen/qwen3.8-27b:free",
       "google/gemma-4-26b-a4b-it:free",
+      "poolside/laguna-s-2.1:free",
+      "dots-studio/dots-3-note-preview:free",
+      "inclusionai/ling-3.0-flash-fin:free",
       "liquid/lfm-2.5-2.6b:free",
-      // Last on purpose: a large reasoning-style model, more prone to
-      // spending its output budget "thinking" instead of returning clean
-      // JSON even with reasoning.exclude set - see src/lib/ai/openrouter.ts.
-      "nvidia/nemotron-3-super-120b-a12b:free"
+      // Last resort: OpenRouter's own auto-router across whatever free
+      // model is currently available - a safety net for when several
+      // individual providers above are simultaneously congested.
+      "openrouter/free"
     ].join(",")
   )
     .split(",")
