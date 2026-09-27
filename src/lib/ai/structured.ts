@@ -54,8 +54,21 @@ function tryParseAndValidate<T>(
   return { success: true, data: result.data };
 }
 
+/**
+ * Reasoning-style models (increasingly common among free-tier OpenRouter
+ * models) often emit their chain-of-thought wrapped in tags like
+ * <think>...</think> before the actual answer, regardless of being told to
+ * respond with "ONLY JSON, no commentary." Strip those blocks first so the
+ * brace-matching below searches the real answer, not the reasoning text
+ * (which frequently contains its own unrelated/unbalanced braces).
+ */
+function stripReasoningBlocks(text: string): string {
+  return text.replace(/<(think|thinking|reasoning)>[\s\S]*?<\/\1>/gi, "").trim();
+}
+
 /** Extracts the first top-level JSON object from a string, tolerating stray text or markdown fences around it. */
-function extractJsonObject(text: string): string | null {
+function extractJsonObject(rawText: string): string | null {
+  const text = stripReasoningBlocks(rawText);
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const source = fenced?.[1] ?? text;
 

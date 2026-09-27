@@ -53,11 +53,14 @@ export const env = {
   openrouterModels: (
     process.env.OPENROUTER_MODELS ??
     [
-      "nvidia/nemotron-3-super-120b-a12b:free",
       "google/gemma-4-31b-it:free",
-      "google/gemma-4-26b-a4b-it:free",
       "qwen/qwen3.8-27b:free",
-      "liquid/lfm-2.5-2.6b:free"
+      "google/gemma-4-26b-a4b-it:free",
+      "liquid/lfm-2.5-2.6b:free",
+      // Last on purpose: a large reasoning-style model, more prone to
+      // spending its output budget "thinking" instead of returning clean
+      // JSON even with reasoning.exclude set - see src/lib/ai/openrouter.ts.
+      "nvidia/nemotron-3-super-120b-a12b:free"
     ].join(",")
   )
     .split(",")

@@ -51,7 +51,19 @@ export class OpenRouterProvider implements AIProvider {
         Authorization: `Bearer ${this.apiKey}`,
         "content-type": "application/json"
       },
-      body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature })
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: maxTokens,
+        temperature,
+        // Reasoning-style models (common among free-tier ones) can spend
+        // most/all of max_tokens "thinking" and never reach a visible
+        // answer, or emit <think>...</think> the JSON parser has to strip.
+        // `exclude: true` asks OpenRouter to hide reasoning tokens from the
+        // response for models that support it; ignored harmlessly by ones
+        // that don't.
+        reasoning: { exclude: true }
+      })
     });
 
     if (!res.ok) {
