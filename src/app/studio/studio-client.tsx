@@ -13,6 +13,21 @@ interface StudioResponse {
   selectedPatternIds: string[];
 }
 
+/**
+ * A platform-level error (a serverless function timeout, a proxy error page)
+ * returns plain text/HTML instead of JSON, and res.json() throws a confusing
+ * "Unexpected token... is not valid JSON" in that case. Read as text first so
+ * that failure surfaces as a readable message instead.
+ */
+async function parseJsonResponse(res: Response): Promise<any> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: res.ok ? "Unexpected non-JSON response." : text.slice(0, 300) || `Request failed (${res.status}).` };
+  }
+}
+
 const CHECK_LABELS: Record<keyof CriticResult["checks"], string> = {
   relevance: "Relevance",
   specificity: "Specificity",
@@ -56,7 +71,7 @@ export function StudioClient({ patterns }: { patterns: PatternWithStats[] }) {
           researchDepth
         })
       });
-      const data = await res.json();
+      const data = await parseJsonResponse(res);
       if (!res.ok) throw new Error(data.error?.formErrors?.join(", ") ?? data.error ?? "Generation failed.");
       setResult(data);
       setContent(data.generated.content);
@@ -82,7 +97,7 @@ export function StudioClient({ patterns }: { patterns: PatternWithStats[] }) {
     if (!result) return;
     await saveEdit();
     const res = await fetch(`/api/drafts/${result.draft.id}/approve`, { method: "POST" });
-    const data = await res.json();
+    const data = await parseJsonResponse(res);
     if (!res.ok) {
       setActionMessage(`Could not approve: ${data.error}`);
       return;

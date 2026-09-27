@@ -3,6 +3,15 @@ import { z } from "zod";
 import { runStudioPipeline } from "@/lib/generation/pipeline";
 import { createDraft } from "@/lib/data/repository";
 
+/**
+ * This route makes several sequential AI calls (research fact extraction,
+ * generation, critique) - easily over Vercel's default 10s serverless
+ * function timeout, which produces a plain-text platform error page
+ * ("An error occurred with your deployment...") instead of JSON. 60s is the
+ * max duration Vercel's Hobby plan allows.
+ */
+export const maxDuration = 60;
+
 const requestSchema = z.object({
   topic: z.string().min(2),
   audience: z.string().min(2),

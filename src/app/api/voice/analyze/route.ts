@@ -3,6 +3,9 @@ import { z } from "zod";
 import { analyzeVoice } from "@/lib/voice/analyze";
 import { getDefaultVoiceProfile, saveVoiceProfile, addVoiceExamples, listVoiceExamples } from "@/lib/data/repository";
 
+/** See src/app/api/studio/generate/route.ts for why this is needed. */
+export const maxDuration = 60;
+
 const requestSchema = z.object({
   samples: z
     .array(z.object({ content: z.string().min(20), source: z.string().optional() }))
