@@ -22,7 +22,6 @@ export default async function DashboardPage() {
           A snapshot of the whole pipeline: research collected, patterns discovered, drafts generated,
           posts published, and performance recorded.
         </p>
-        <p className="mt-1 text-xs text-accent-400">Server rendered at: {new Date().toISOString()}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">

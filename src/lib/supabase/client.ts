@@ -26,7 +26,14 @@ export function getServiceSupabase(): SupabaseClient | null {
   if (!env.supabaseUrl || !env.supabaseServiceRoleKey) return null;
   if (!serviceClient) {
     serviceClient = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
-      auth: { persistSession: false }
+      auth: { persistSession: false },
+      // Next.js patches the global fetch() to cache responses by default,
+      // including ones made by supabase-js internally - without this, a
+      // route can keep serving the first-ever query result for a table
+      // indefinitely (even across deployments) despite the underlying rows
+      // changing, since Next.js has no way to know the DB mutated. This is
+      // a well-known Next.js App Router + Supabase gotcha.
+      global: { fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) }
     });
   }
   return serviceClient;
