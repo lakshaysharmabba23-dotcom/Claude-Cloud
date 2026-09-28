@@ -47,7 +47,8 @@ export class OpenAIProvider implements AIProvider {
         // Forces strict JSON output on models/providers that support
         // OpenAI-style structured outputs. Only set for completeStructured()
         // callers; harmlessly ignored by providers that don't understand it.
-        ...(jsonMode ? { response_format: { type: "json_object" } } : {})
+        ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+        ...this.extraRequestBody()
       })
     });
 
@@ -58,6 +59,11 @@ export class OpenAIProvider implements AIProvider {
 
     const data = (await res.json()) as { choices: Array<{ message: { content: string } }> };
     return data.choices[0]?.message.content ?? "";
+  }
+
+  /** Hook for subclasses to add provider-specific request fields (e.g. disabling a reasoning model's "thinking" mode). */
+  protected extraRequestBody(): Record<string, unknown> {
+    return {};
   }
 
   async complete(input: CompleteInput): Promise<string> {
