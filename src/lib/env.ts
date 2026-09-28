@@ -54,7 +54,12 @@ export const env = {
    * blows past Vercel's serverless function timeout with a reasoning
    * model. See https://build.nvidia.com for the full catalog.
    */
-  nvidiaModel: process.env.NVIDIA_AI_MODEL ?? "z-ai/glm-5.3-flash",
+  // z-ai/glm-5.3-flash was tried and confirmed too slow in practice (a real
+  // run hit the 300s/600s Trigger.dev timeout) - it's a reasoning-style
+  // model despite the "flash" name. Defaulting back to a plain instruct
+  // model; override via NVIDIA_AI_MODEL if you've confirmed a different one
+  // responds fast enough for a multi-call pipeline.
+  nvidiaModel: process.env.NVIDIA_AI_MODEL ?? "meta/llama-3.1-8b-instruct",
   /**
    * OpenRouter fallback chain: tried in order, first one that responds
    * successfully wins. Free-tier OpenRouter models are frequently rate

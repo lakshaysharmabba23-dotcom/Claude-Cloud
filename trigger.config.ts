@@ -17,7 +17,11 @@ import { defineConfig } from "@trigger.dev/sdk/v3";
 export default defineConfig({
   project: process.env.TRIGGER_PROJECT_ID ?? "proj_pxqxxhivlhectpbltqei",
   dirs: ["./src/trigger"],
-  maxDuration: 300,
+  // A reasoning-style AI model can take well over a minute per call, and
+  // a single generation run makes several sequential calls (per-source
+  // research extraction, generation, critique) - 300s isn't a big enough
+  // safety margin even with a fast model, and none at all with a slow one.
+  maxDuration: 600,
   retries: {
     enabledInDev: true,
     default: {

@@ -41,7 +41,7 @@ const CHECK_LABELS: Record<keyof CriticResult["checks"], string> = {
   no_generic_language: "No generic language"
 };
 
-const MAX_ASYNC_WAIT_MS = 4 * 60 * 1000;
+const MAX_ASYNC_WAIT_MS = 9 * 60 * 1000;
 const POLL_INTERVAL_MS = 3000;
 
 function sleep(ms: number) {
