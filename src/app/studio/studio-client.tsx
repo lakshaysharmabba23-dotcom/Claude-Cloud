@@ -63,6 +63,7 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
   const [content, setContent] = useState("");
   const [draftStatus, setDraftStatus] = useState<string>("critiqued");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<"save" | "approve" | "reject" | null>(null);
 
   function applyResult(data: StudioResponse) {
     setResult(data);
@@ -149,34 +150,75 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
     }
   }
 
-  async function saveEdit() {
+  /** Does the actual save PATCH, with no actionLoading guard - callable from both saveEdit() and approve(). */
+  async function saveEditRequest() {
     if (!result) return;
-    await fetch(`/api/drafts/${result.draft.id}`, {
+    const res = await fetch(`/api/drafts/${result.draft.id}`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ content })
     });
-    setActionMessage("Edit saved.");
+    if (!res.ok) {
+      const data = await parseJsonResponse(res);
+      throw new Error(data.error ?? res.statusText);
+    }
+  }
+
+  async function saveEdit() {
+    if (!result || actionLoading) return;
+    setActionLoading("save");
+    setActionMessage(null);
+    try {
+      await saveEditRequest();
+      setActionMessage("Edit saved.");
+    } catch (err) {
+      setActionMessage(`Could not save: ${(err as Error).message}`);
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   async function approve() {
-    if (!result) return;
-    await saveEdit();
-    const res = await fetch(`/api/drafts/${result.draft.id}/approve`, { method: "POST" });
-    const data = await parseJsonResponse(res);
-    if (!res.ok) {
-      setActionMessage(`Could not approve: ${data.error}`);
-      return;
+    if (!result || actionLoading) return;
+    setActionLoading("approve");
+    setActionMessage(null);
+    try {
+      await saveEditRequest();
+      const res = await fetch(`/api/drafts/${result.draft.id}/approve`, { method: "POST" });
+      const data = await parseJsonResponse(res);
+      if (!res.ok) {
+        setActionMessage(`Could not approve: ${data.error}`);
+        return;
+      }
+      setDraftStatus("approved");
+      setActionMessage(
+        "Approved and recorded as published. Add performance data from LinkedIn analytics on the Analytics page when available."
+      );
+    } catch (err) {
+      setActionMessage(`Could not approve: ${(err as Error).message}`);
+    } finally {
+      setActionLoading(null);
     }
-    setDraftStatus("approved");
-    setActionMessage("Approved and recorded as published. Add performance data from LinkedIn analytics on the Analytics page when available.");
   }
 
   async function reject() {
-    if (!result) return;
-    await fetch(`/api/drafts/${result.draft.id}/reject`, { method: "POST" });
-    setDraftStatus("rejected");
-    setActionMessage("Draft rejected.");
+    if (!result || actionLoading) return;
+    setActionLoading("reject");
+    setActionMessage(null);
+    try {
+      const res = await fetch(`/api/drafts/${result.draft.id}/reject`, { method: "POST" });
+      if (!res.ok) {
+        const data = await parseJsonResponse(res);
+        setActionMessage(`Could not reject: ${data.error ?? res.statusText}`);
+        return;
+      }
+      setDraftStatus("rejected");
+      setActionMessage("Draft rejected.");
+    } catch (err) {
+      setActionMessage(`Could not reject: ${(err as Error).message}`);
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   return (
@@ -254,19 +296,28 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
               onChange={(e) => setContent(e.target.value)}
             />
             <div className="flex flex-wrap gap-2">
-              <button className="btn-secondary" onClick={saveEdit}>
-                Save edit
+              <button className="btn-secondary" onClick={saveEdit} disabled={loading || actionLoading !== null}>
+                {actionLoading === "save" ? "Saving..." : "Save edit"}
               </button>
-              <button className="btn-secondary" onClick={generate}>
-                Regenerate
+              <button className="btn-secondary" onClick={generate} disabled={loading || actionLoading !== null}>
+                {loading ? progress ?? "Regenerating..." : "Regenerate"}
               </button>
-              <button className="btn-primary" onClick={approve}>
-                Approve &amp; record as published
+              <button className="btn-primary" onClick={approve} disabled={loading || actionLoading !== null}>
+                {actionLoading === "approve" ? "Approving..." : "Approve & record as published"}
               </button>
-              <button className="btn-ghost text-bad" onClick={reject}>
-                Reject
+              <button
+                className="btn-ghost text-bad"
+                onClick={reject}
+                disabled={loading || actionLoading !== null}
+              >
+                {actionLoading === "reject" ? "Rejecting..." : "Reject"}
               </button>
             </div>
+            {loading && (
+              <p className="text-xs text-ink-400">
+                {demoMode ? "Regenerating..." : "Running as a background job - this can take a minute or two."}
+              </p>
+            )}
             {actionMessage && <p className="text-sm text-ink-200">{actionMessage}</p>}
             <p className="text-xs text-ink-400">
               CTA type: {result.generated.cta_type} - pattern followed: {result.generated.selected_pattern}
