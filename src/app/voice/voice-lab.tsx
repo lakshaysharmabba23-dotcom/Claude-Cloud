@@ -17,6 +17,7 @@ export function VoiceLab({
   const [pendingSamples, setPendingSamples] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openExample, setOpenExample] = useState<VoiceExampleRecord | null>(null);
 
   function addSampleToQueue() {
     if (draftSample.trim().length < 20) {
@@ -87,13 +88,40 @@ export function VoiceLab({
           <h3 className="label mt-4">Stored examples ({examples.length})</h3>
           <ul className="max-h-60 space-y-2 overflow-y-auto text-xs text-ink-400">
             {examples.map((e) => (
-              <li key={e.id} className="rounded-lg bg-ink-800 px-3 py-2 line-clamp-2">
-                {e.content}
+              <li key={e.id}>
+                <button
+                  type="button"
+                  onClick={() => setOpenExample(e)}
+                  className="line-clamp-3 w-full rounded-lg bg-ink-800 px-3 py-2 text-left transition-colors hover:bg-ink-700"
+                >
+                  {e.content}
+                </button>
               </li>
             ))}
           </ul>
         </div>
       </section>
+
+      {openExample && (
+        <div
+          className="fixed inset-0 z-20 flex items-start justify-center overflow-y-auto bg-black/60 p-6 backdrop-blur-sm"
+          onClick={() => setOpenExample(null)}
+        >
+          <div
+            className="card mt-12 w-full max-w-2xl whitespace-pre-wrap text-sm text-ink-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-medium">Writing sample</h3>
+              <button type="button" onClick={() => setOpenExample(null)} className="btn-ghost px-2 py-1 text-xs">
+                Close
+              </button>
+            </div>
+            {openExample.content}
+            {openExample.source && <p className="mt-4 text-xs text-ink-400">Source: {openExample.source}</p>}
+          </div>
+        </div>
+      )}
 
       <section className="card">
         <h2 className="mb-3 font-medium">Voice profile</h2>
