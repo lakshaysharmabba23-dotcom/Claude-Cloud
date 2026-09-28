@@ -26,7 +26,8 @@ export async function completeStructuredWithRetry<T>(params: {
   if (retryParsed.success) return retryParsed.data;
 
   throw new Error(
-    `AI structured output for "${params.schemaName}" failed validation twice. Last error: ${retryParsed.error}`
+    `AI structured output for "${params.schemaName}" failed validation twice. Last error: ${retryParsed.error}. ` +
+      `Raw model output was: ${JSON.stringify(retryRaw.slice(0, 500))}`
   );
 }
 
