@@ -6,6 +6,7 @@ import { SerpApiProvider } from "./serpapi";
 import { SeoPipelineProvider } from "./seoPipeline";
 import { normalizeDocument, dedupeDocuments, type NormalizedDocument } from "@/lib/normalization/normalize";
 import type { ResearchRequest } from "@/lib/types/schemas";
+import { fetchRecentHackerNewsDiscussion } from "./hackernews";
 
 let cached: ResearchProvider | null = null;
 
@@ -78,6 +79,34 @@ export async function researchTopic(request: ResearchRequest): Promise<Researche
     });
     normalized.push(doc);
     pageByCanonicalUrl.set(doc.canonical_url, page);
+  }
+
+  // "Last 30 days" real discussion: Hacker News's free public search API,
+  // filtered to recent posts, added as extra grounding alongside the web
+  // search results above. Skipped in DEMO_MODE (keeps it fully offline) and
+  // never lets a failed/empty lookup break the rest of research.
+  if (!env.demoMode) {
+    try {
+      const hnHits = await fetchRecentHackerNewsDiscussion(request.topic, { limit: 3, days: 30 });
+      for (const hit of hnHits) {
+        const content = [hit.title, hit.storyText, `${hit.points} points, ${hit.numComments} comments on Hacker News.`]
+          .filter(Boolean)
+          .join("\n\n");
+        normalized.push(
+          normalizeDocument({
+            title: hit.title,
+            author: hit.author,
+            source_url: hit.url,
+            source_type: "forum",
+            published_at: hit.createdAt,
+            content,
+            metadata: { source: "hackernews", points: hit.points, comments: hit.numComments }
+          })
+        );
+      }
+    } catch {
+      // Best-effort supplementary source - never fail the whole research step over it.
+    }
   }
 
   const deduped = dedupeDocuments(normalized);
