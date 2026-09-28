@@ -11,6 +11,7 @@ import {
   SEED_PERFORMANCE,
   SEED_PATTERN_PERFORMANCE
 } from "./seed-data";
+import { REAL_CREATORS, REAL_SOURCE_POSTS, REAL_PATTERNS, REAL_POST_PATTERNS } from "./real-gtm-patterns";
 
 export interface SeedResult {
   table: string;
@@ -66,6 +67,34 @@ export async function seedSupabase(supabase: SupabaseClient): Promise<SeedResult
   );
   await upsert("post_performance", SEED_PERFORMANCE);
   await upsert("pattern_performance", SEED_PATTERN_PERFORMANCE);
+
+  return results;
+}
+
+/**
+ * Pushes a real, evidence-based Pattern Library into Supabase - see
+ * src/lib/data/real-gtm-patterns.ts for provenance (public LinkedIn posts
+ * the user collected themselves and handed over for analysis; this app
+ * never scrapes LinkedIn). Additive alongside the fictional DEMO_MODE
+ * dataset, not a replacement - both can coexist in content_patterns.
+ * Idempotent, same as seedSupabase.
+ */
+export async function seedRealPatterns(supabase: SupabaseClient): Promise<SeedResult[]> {
+  const results: SeedResult[] = [];
+
+  async function upsert(table: string, rows: Record<string, unknown>[]) {
+    if (rows.length === 0) {
+      results.push({ table, rows: 0, error: null });
+      return;
+    }
+    const { error } = await supabase.from(table).upsert(rows);
+    results.push({ table, rows: rows.length, error: error?.message ?? null });
+  }
+
+  await upsert("creators", REAL_CREATORS);
+  await upsert("content_patterns", REAL_PATTERNS);
+  await upsert("source_posts", REAL_SOURCE_POSTS);
+  await upsert("post_patterns", REAL_POST_PATTERNS);
 
   return results;
 }
