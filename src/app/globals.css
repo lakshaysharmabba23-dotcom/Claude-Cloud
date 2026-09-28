@@ -8,34 +8,37 @@
 
 body {
   @apply bg-ink-950 text-ink-50 antialiased;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgb(99 102 241 / 0.12), transparent);
+  background-attachment: fixed;
 }
 
 .card {
-  @apply rounded-xl border border-ink-700 bg-ink-900 p-5 shadow-sm;
+  @apply rounded-2xl border border-ink-800 bg-ink-900/60 p-5 shadow-lg shadow-black/20 backdrop-blur-sm transition-colors;
 }
 
 .badge {
-  @apply inline-flex items-center rounded-full border border-ink-600 bg-ink-800 px-2.5 py-0.5 text-xs font-medium text-ink-200;
+  @apply inline-flex items-center rounded-full border border-ink-700 bg-ink-800/80 px-2.5 py-0.5 text-xs font-medium tracking-wide text-ink-200;
 }
 
 .btn {
-  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .btn-primary {
-  @apply btn bg-accent-500 text-white hover:bg-accent-400;
+  @apply btn bg-accent-500 text-white shadow-md shadow-accent-500/20 hover:bg-accent-400 hover:shadow-accent-500/30 active:scale-[0.98];
 }
 
 .btn-secondary {
-  @apply btn border border-ink-600 bg-ink-800 text-ink-50 hover:bg-ink-700;
+  @apply btn border border-ink-700 bg-ink-800/80 text-ink-50 hover:border-ink-600 hover:bg-ink-700 active:scale-[0.98];
 }
 
 .btn-ghost {
-  @apply btn text-ink-200 hover:bg-ink-800;
+  @apply btn text-ink-200 hover:bg-ink-800 active:scale-[0.98];
 }
 
 .input {
-  @apply w-full rounded-lg border border-ink-600 bg-ink-900 px-3 py-2 text-sm text-ink-50 placeholder:text-ink-400 focus:border-accent-500 focus:outline-none;
+  @apply w-full rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm text-ink-50 placeholder:text-ink-400 transition-colors focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20;
 }
 
 .label {
