@@ -116,10 +116,20 @@ export async function seedRealVoiceProfile(supabase: SupabaseClient): Promise<Se
   }
 
   await upsert("voice_profiles", [REAL_VOICE_PROFILE]);
-  // Drop the old fictional examples for this profile before inserting the
-  // one real one, so stale [FICTIONAL] samples don't linger alongside it.
-  await supabase.from("voice_examples").delete().eq("voice_profile_id", REAL_VOICE_PROFILE.id!);
   await upsert("voice_examples", REAL_VOICE_EXAMPLES);
+  // Drop every OTHER example on this profile (the old fictional ones) -
+  // done after the upsert, and by excluding the real ids rather than
+  // deleting-then-inserting, so this is safe to re-run and its result is
+  // actually checked (a previous version of this function fired the
+  // delete without reading its error, so a failed delete went unnoticed
+  // and stale [FICTIONAL] examples lingered).
+  const realExampleIds = REAL_VOICE_EXAMPLES.map((e) => e.id);
+  const { error: deleteError, count } = await supabase
+    .from("voice_examples")
+    .delete({ count: "exact" })
+    .eq("voice_profile_id", REAL_VOICE_PROFILE.id!)
+    .not("id", "in", `(${realExampleIds.join(",")})`);
+  results.push({ table: "voice_examples (stale removed)", rows: count ?? 0, error: deleteError?.message ?? null });
 
   return results;
 }
