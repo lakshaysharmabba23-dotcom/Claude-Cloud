@@ -477,7 +477,7 @@ export async function getDashboardSummary() {
       performanceSnapshots: performance.length
     },
     topPatterns,
-    recentResearch: sourcePosts.slice(0, 5),
+    recentResearch: sourcePosts.slice(0, 8),
     recentDrafts: drafts.slice(0, 5)
   };
 }

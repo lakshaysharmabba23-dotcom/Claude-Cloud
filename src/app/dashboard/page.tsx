@@ -79,7 +79,12 @@ export default async function DashboardPage() {
       </div>
 
       <section className="card">
-        <h2 className="mb-3 font-medium">Recent research</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-medium">Recent research</h2>
+          <span className="text-xs text-ink-400">
+            Showing {summary.recentResearch.length} most recent of {summary.counts.sourcePosts}
+          </span>
+        </div>
         <ul className="grid gap-2 sm:grid-cols-2">
           {summary.recentResearch.map((post) => (
             <li key={post.id} className="rounded-lg bg-ink-800 px-3 py-2 text-xs">

@@ -158,6 +158,9 @@ export type VoiceExampleInput = z.infer<typeof voiceExampleInputSchema>;
 // Generation layer
 // -----------------------------------------------------------------------------
 
+export const postLengthSchema = z.enum(["short", "medium", "long"]).default("medium");
+export type PostLength = z.infer<typeof postLengthSchema>;
+
 export const generationContextSchema = z.object({
   topic: z.string().min(2),
   audience: z.string().min(2),
@@ -165,7 +168,8 @@ export const generationContextSchema = z.object({
   voice_profile: voiceProfileSchema,
   selected_patterns: z.array(contentPatternSchema).min(1),
   research: z.array(researchDocumentSchema),
-  relevant_voice_examples: z.array(z.string()).default([])
+  relevant_voice_examples: z.array(z.string()).default([]),
+  post_length: postLengthSchema
 });
 export type GenerationContext = z.infer<typeof generationContextSchema>;
 

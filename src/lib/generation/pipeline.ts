@@ -5,7 +5,7 @@ import { PostGenerator } from "./generator";
 import { critiquePost } from "@/lib/critic/critic";
 import { summarizeVoiceProfile } from "@/lib/voice/analyze";
 import { listPatterns, listVoiceExamples, getDefaultVoiceProfile } from "@/lib/data/repository";
-import type { GeneratedPost, ResearchDocument, VoiceProfile, CriticResult } from "@/lib/types/schemas";
+import type { GeneratedPost, ResearchDocument, VoiceProfile, CriticResult, PostLength } from "@/lib/types/schemas";
 
 export interface StudioRequest {
   topic: string;
@@ -14,6 +14,7 @@ export interface StudioRequest {
   selectedPatternId?: string;
   sourceUrls?: string[];
   researchDepth?: "quick" | "standard" | "deep";
+  postLength?: PostLength;
 }
 
 export interface StudioResult {
@@ -114,7 +115,8 @@ export async function runStudioPipeline(request: StudioRequest): Promise<StudioR
     voiceProfile,
     selectedPatterns,
     research,
-    relevantVoiceExamples
+    relevantVoiceExamples,
+    postLength: request.postLength
   });
 
   const generator = new PostGenerator();

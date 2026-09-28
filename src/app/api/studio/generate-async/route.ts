@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { tasks } from "@trigger.dev/sdk/v3";
 import type { generatePostTask } from "@/trigger/generatePost";
+import { postLengthSchema } from "@/lib/types/schemas";
 
 const requestSchema = z.object({
   topic: z.string().min(2),
@@ -9,7 +10,8 @@ const requestSchema = z.object({
   objective: z.string().min(2),
   selectedPatternId: z.string().optional(),
   sourceUrls: z.array(z.string().url()).optional(),
-  researchDepth: z.enum(["quick", "standard", "deep"]).optional()
+  researchDepth: z.enum(["quick", "standard", "deep"]).optional(),
+  postLength: postLengthSchema.optional()
 });
 
 /**

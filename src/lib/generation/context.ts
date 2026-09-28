@@ -1,4 +1,4 @@
-import type { ContentPattern, GenerationContext, ResearchDocument, VoiceProfile } from "@/lib/types/schemas";
+import type { ContentPattern, GenerationContext, PostLength, ResearchDocument, VoiceProfile } from "@/lib/types/schemas";
 
 /**
  * Assembles the structured generation context: everything the PostGenerator
@@ -15,6 +15,7 @@ export function buildGenerationContext(params: {
   selectedPatterns: ContentPattern[];
   research: ResearchDocument[];
   relevantVoiceExamples: string[];
+  postLength?: PostLength;
 }): GenerationContext {
   if (params.selectedPatterns.length === 0) {
     throw new Error("At least one content pattern must be selected to ground generation.");
@@ -27,6 +28,7 @@ export function buildGenerationContext(params: {
     voice_profile: params.voiceProfile,
     selected_patterns: params.selectedPatterns,
     research: params.research,
-    relevant_voice_examples: params.relevantVoiceExamples
+    relevant_voice_examples: params.relevantVoiceExamples,
+    post_length: params.postLength ?? "medium"
   };
 }

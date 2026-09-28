@@ -54,6 +54,7 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
   const [objective, setObjective] = useState("Generate discussion");
   const [patternId, setPatternId] = useState("");
   const [researchDepth, setResearchDepth] = useState<"quick" | "standard" | "deep">("standard");
+  const [postLength, setPostLength] = useState<"short" | "medium" | "long">("medium");
 
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
@@ -74,7 +75,8 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
     audience,
     objective,
     selectedPatternId: patternId || undefined,
-    researchDepth
+    researchDepth,
+    postLength
   };
 
   /** DEMO_MODE only: mock providers respond in milliseconds, so a single request round trip is safe. */
@@ -178,7 +180,7 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[320px_1fr_1fr]">
       <section className="card h-fit space-y-4">
         <h2 className="font-medium">Generation inputs</h2>
         <div>
@@ -214,6 +216,18 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
             <option value="quick">Quick (3 sources)</option>
             <option value="standard">Standard (6 sources)</option>
             <option value="deep">Deep (10 sources)</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">Post length</label>
+          <select
+            className="input"
+            value={postLength}
+            onChange={(e) => setPostLength(e.target.value as typeof postLength)}
+          >
+            <option value="short">Short (~60-100 words)</option>
+            <option value="medium">Medium (~120-200 words)</option>
+            <option value="long">Long (~250-400 words)</option>
           </select>
         </div>
         <button className="btn-primary w-full" onClick={generate} disabled={loading}>
@@ -304,7 +318,11 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
               </div>
             )}
           </section>
+        </div>
+      )}
 
+      {result && (
+        <div className="space-y-6">
           <section className="card">
             <h2 className="mb-3 font-medium">Research sources</h2>
             <ul className="space-y-2 text-sm">

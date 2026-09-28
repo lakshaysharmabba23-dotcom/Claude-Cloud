@@ -14,9 +14,19 @@ import { generatedPostSchema, type GeneratedPost, type GenerationContext } from 
  *   - Only draw on the research/facts actually included in the context -
  *     never invent a statistic or example that wasn't provided.
  */
+const LENGTH_SPEC: Record<GenerationContext["post_length"], { instruction: string; maxTokens: number }> = {
+  short: { instruction: "Target length: SHORT - roughly 60-100 words, 3-5 short lines. Get to the point fast.", maxTokens: 500 },
+  medium: { instruction: "Target length: MEDIUM - roughly 120-200 words, the typical LinkedIn post length.", maxTokens: 1000 },
+  long: {
+    instruction: "Target length: LONG - roughly 250-400 words, with room for a fuller story or more detailed breakdown.",
+    maxTokens: 1800
+  }
+};
+
 export class PostGenerator {
   async generate(context: GenerationContext): Promise<GeneratedPost> {
     const ai = getAIProvider();
+    const lengthSpec = LENGTH_SPEC[context.post_length];
 
     const patternDescriptions = context.selected_patterns
       .map((p) => `- ${p.name} (${p.category}): ${p.description}\n  Typical structure: ${p.structure.join(" -> ")}`)
@@ -44,6 +54,7 @@ export class PostGenerator {
       `Topic: ${context.topic}`,
       `Audience: ${context.audience}`,
       `Objective: ${context.objective}`,
+      lengthSpec.instruction,
       "",
       `Target voice: ${summarizeVoiceProfile(context.voice_profile)}`,
       "",
@@ -65,7 +76,7 @@ export class PostGenerator {
       schema: generatedPostSchema,
       schemaName: "generated_post",
       temperature: 0.8,
-      maxTokens: 1000
+      maxTokens: lengthSpec.maxTokens
     });
 
     return {

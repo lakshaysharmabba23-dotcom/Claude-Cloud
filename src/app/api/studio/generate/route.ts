@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { runStudioPipeline } from "@/lib/generation/pipeline";
 import { createDraft } from "@/lib/data/repository";
+import { postLengthSchema } from "@/lib/types/schemas";
 
 /**
  * This route makes several sequential AI calls (research fact extraction,
@@ -18,7 +19,8 @@ const requestSchema = z.object({
   objective: z.string().min(2),
   selectedPatternId: z.string().optional(),
   sourceUrls: z.array(z.string().url()).optional(),
-  researchDepth: z.enum(["quick", "standard", "deep"]).optional()
+  researchDepth: z.enum(["quick", "standard", "deep"]).optional(),
+  postLength: postLengthSchema.optional()
 });
 
 /**
