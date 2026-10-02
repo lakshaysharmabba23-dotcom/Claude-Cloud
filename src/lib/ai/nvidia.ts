@@ -24,6 +24,8 @@ export class NvidiaProvider extends OpenAIProvider {
    * than left to each model's default.
    */
   protected extraRequestBody(): Record<string, unknown> {
-    return { chat_template_kwargs: { enable_thinking: false } };
+    // Only models that actually have a thinking mode: sending an unknown
+    // field to a plain instruct model (e.g. Gemma) risks a 400 rejection.
+    return this.model.includes("nemotron") ? { chat_template_kwargs: { enable_thinking: false } } : {};
   }
 }

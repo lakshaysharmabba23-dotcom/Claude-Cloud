@@ -60,7 +60,7 @@ export const env = {
   // "thinking" mode too, but NvidiaProvider explicitly disables it (see
   // src/lib/ai/nvidia.ts) so it should stay fast. Override via
   // NVIDIA_AI_MODEL if you've confirmed a different one works better.
-  nvidiaModel: process.env.NVIDIA_AI_MODEL ?? "nvidia/nemotron-3.5-lightning-30b-a3b",
+  nvidiaModel: process.env.NVIDIA_AI_MODEL ?? "google/gemma-4-31b-it",
   /**
    * OpenRouter fallback chain: tried in order, first one that responds
    * successfully wins. Free-tier OpenRouter models are frequently rate
