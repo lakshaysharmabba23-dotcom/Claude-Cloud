@@ -7,6 +7,7 @@ import { OpenRouterProvider } from "./openrouter";
 import { GoogleAIProvider } from "./google";
 import { NvidiaProvider } from "./nvidia";
 import { ModalProvider } from "./modal";
+import { ProviderChain } from "./chain";
 
 let cached: AIProvider | null = null;
 
@@ -32,15 +33,20 @@ export function getAIProvider(): AIProvider {
     case "openrouter":
       cached = new OpenRouterProvider(env.openrouterModels, env.openrouterApiKey);
       break;
-    case "modal":
-      cached = new ModalProvider({
+    case "modal": {
+      const modal = new ModalProvider({
         model: env.modalModel,
         baseUrl: env.modalBaseUrl,
         tokenId: env.modalTokenId,
         tokenSecret: env.modalTokenSecret,
         reasoningEffort: env.modalReasoningEffort
       });
+      // If an NVIDIA key is also set, use it as a backup when Modal fails.
+      cached = env.nvidiaApiKey
+        ? new ProviderChain([modal, new NvidiaProvider(env.nvidiaModel, env.nvidiaApiKey)])
+        : modal;
       break;
+    }
     case "nvidia":
       cached = new NvidiaProvider(env.nvidiaModel, env.nvidiaApiKey);
       break;

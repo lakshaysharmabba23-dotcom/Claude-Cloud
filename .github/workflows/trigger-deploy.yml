@@ -10,7 +10,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "src/trigger/**"
+      # The background job imports code from all of src/, so any change
+      # there must redeploy it - otherwise it keeps running old code.
+      - "src/**"
       - "trigger.config.ts"
       - "package.json"
       - "package-lock.json"
