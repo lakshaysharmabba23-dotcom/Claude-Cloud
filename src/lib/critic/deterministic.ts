@@ -86,24 +86,30 @@ function containsAny(haystack: string, needles: string[]): string[] {
 /** Longest shared word-sequence length between two texts, used to catch near-verbatim copying. */
 function longestSharedNGram(a: string, b: string): number {
   const wordsA = a.toLowerCase().match(/[a-z0-9']+/g) ?? [];
-  const wordsB = new Set<string>();
-  const bWords = b.toLowerCase().match(/[a-z0-9']+/g) ?? [];
+  const wordsB = b.toLowerCase().match(/[a-z0-9']+/g) ?? [];
 
+  // Index every 8-word window of the source (one small string per position,
+  // not every possible length - that blew up memory on long scraped pages),
+  // then extend each match found in the draft word by word.
   const MIN_N = 8;
-  for (let n = bWords.length; n >= MIN_N; n--) {
-    for (let i = 0; i + n <= bWords.length; i++) {
-      wordsB.add(bWords.slice(i, i + n).join(" "));
-    }
+  if (wordsA.length < MIN_N || wordsB.length < MIN_N) return 0;
+
+  const positionsByGram = new Map<string, number[]>();
+  for (let j = 0; j + MIN_N <= wordsB.length; j++) {
+    const gram = wordsB.slice(j, j + MIN_N).join(" ");
+    const list = positionsByGram.get(gram);
+    if (list) list.push(j);
+    else positionsByGram.set(gram, [j]);
   }
-  if (wordsB.size === 0) return 0;
 
   let longest = 0;
-  for (let n = wordsA.length; n >= MIN_N; n--) {
-    for (let i = 0; i + n <= wordsA.length; i++) {
-      const gram = wordsA.slice(i, i + n).join(" ");
-      if (wordsB.has(gram)) {
-        longest = Math.max(longest, n);
-      }
+  for (let i = 0; i + MIN_N <= wordsA.length; i++) {
+    const starts = positionsByGram.get(wordsA.slice(i, i + MIN_N).join(" "));
+    if (!starts) continue;
+    for (const j of starts) {
+      let run = MIN_N;
+      while (i + run < wordsA.length && j + run < wordsB.length && wordsA[i + run] === wordsB[j + run]) run++;
+      if (run > longest) longest = run;
     }
   }
   return longest;

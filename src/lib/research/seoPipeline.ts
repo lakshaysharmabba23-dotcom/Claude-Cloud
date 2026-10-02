@@ -67,7 +67,8 @@ export class SeoPipelineProvider implements ResearchProvider {
       title: data.title ?? null,
       author: null,
       publishedAt: null,
-      content: data.content,
+      // Cap very long pages - only the first few thousand chars are used anyway.
+      content: data.content.slice(0, 60000),
       sourceType: "article",
       metadata: { extractedVia: "seo-pipeline (jina)" }
     };
