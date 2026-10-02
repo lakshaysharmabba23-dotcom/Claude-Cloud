@@ -22,6 +22,9 @@ export default defineConfig({
   // research extraction, generation, critique) - 300s isn't a big enough
   // safety margin even with a fast model, and none at all with a slow one.
   maxDuration: 600,
+  // The default machine (0.5 GB RAM) ran out of memory (TASK_PROCESS_OOM_KILLED)
+  // while scraping pages and loading the pipeline. 2 GB gives plenty of room.
+  machine: "medium-1x",
   retries: {
     enabledInDev: true,
     default: {
