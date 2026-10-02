@@ -13,9 +13,15 @@ export const metadata: Metadata = {
     "A research-grounded content intelligence pipeline: pattern extraction, voice modeling, generation, critique, and performance feedback."
 };
 
+// Runs before first paint so there's no light-to-dark flash: saved choice, else the system setting.
+const THEME_INIT = `try{var t=localStorage.getItem("theme");if(!t)t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.classList.toggle("dark",t==="dark")}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable}`}>
+    <html lang="en" className={`${sans.variable} ${display.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+      </head>
       <body>
         <Nav />
         {env.demoMode && (

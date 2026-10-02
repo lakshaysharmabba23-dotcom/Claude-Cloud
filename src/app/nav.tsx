@@ -12,6 +12,33 @@ const LINKS = [
   { href: "/analytics", label: "Analytics" }
 ] as const;
 
+function ThemeToggle() {
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => setDark(document.documentElement.classList.contains("dark")), []);
+
+  function toggle() {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    try {
+      localStorage.setItem("theme", next ? "dark" : "light");
+    } catch {}
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      className="btn-secondary px-3 py-1.5"
+      aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+      aria-pressed={dark}
+    >
+      {dark ? "Light" : "Dark"}
+    </button>
+  );
+}
+
 export function Nav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -46,15 +73,18 @@ export function Nav() {
           })}
         </nav>
 
-        <button
-          type="button"
-          className="btn-secondary px-3 py-1.5 md:hidden"
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? "Close" : "Menu"}
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            type="button"
+            className="btn-secondary px-3 py-1.5 md:hidden"
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? "Close" : "Menu"}
+          </button>
+        </div>
       </div>
 
       {open && (
