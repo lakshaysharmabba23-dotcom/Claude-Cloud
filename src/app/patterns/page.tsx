@@ -9,8 +9,9 @@ export default async function PatternsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Pattern Library</h1>
-        <p className="mt-1 text-sm text-ink-400">
+        <div className="eyebrow mb-3">Content Intelligence</div>
+        <h1 className="display text-4xl sm:text-5xl">Pattern Library</h1>
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-200">
           Reusable content patterns discovered by evidence-based extraction over researched posts - hooks,
           structures, storytelling mechanisms, evidence types, CTAs, and formatting.
         </p>

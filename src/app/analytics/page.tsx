@@ -14,8 +14,9 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Analytics</h1>
-        <p className="mt-1 text-sm text-ink-400">
+        <div className="eyebrow mb-3">Content Intelligence</div>
+        <h1 className="display text-4xl sm:text-5xl">Analytics</h1>
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-200">
           Manually-entered performance, and what it&apos;s <em>associated with</em> - never a causal claim.
           Every row discloses its sample size and confidence.
         </p>

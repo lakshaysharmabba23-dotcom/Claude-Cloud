@@ -10,8 +10,9 @@ export default async function StudioPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Post Studio</h1>
-        <p className="mt-1 text-sm text-ink-400">
+        <div className="eyebrow mb-3">Content Intelligence</div>
+        <h1 className="display text-4xl sm:text-5xl">Post Studio</h1>
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-200">
           Research a topic, ground generation in retrieved patterns and your voice, then review, edit, and
           approve before anything is recorded as published.
         </p>

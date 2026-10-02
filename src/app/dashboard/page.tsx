@@ -17,8 +17,9 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="mt-1 text-sm text-ink-400">
+        <div className="eyebrow mb-3">Content Intelligence</div>
+        <h1 className="display text-4xl sm:text-5xl">Dashboard</h1>
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-200">
           A snapshot of the whole pipeline: research collected, patterns discovered, drafts generated,
           posts published, and performance recorded.
         </p>
@@ -27,8 +28,8 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {stats.map((stat) => (
           <div key={stat.label} className="card">
-            <div className="text-2xl font-semibold">{stat.value}</div>
-            <div className="mt-1 text-xs text-ink-400">{stat.label}</div>
+            <div className="display text-4xl">{stat.value}</div>
+            <div className="eyebrow mt-2 !text-ink-400">{stat.label}</div>
           </div>
         ))}
       </div>
