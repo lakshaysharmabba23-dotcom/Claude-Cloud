@@ -222,7 +222,7 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[320px_1fr_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)_minmax(0,1fr)]">
       <section className="card h-fit space-y-4">
         <h2 className="font-medium">Generation inputs</h2>
         <div>
@@ -255,9 +255,9 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
             value={researchDepth}
             onChange={(e) => setResearchDepth(e.target.value as typeof researchDepth)}
           >
-            <option value="quick">Quick (3 sources)</option>
-            <option value="standard">Standard (6 sources)</option>
-            <option value="deep">Deep (10 sources)</option>
+            <option value="quick">Quick (1 web source)</option>
+            <option value="standard">Standard (2 web sources)</option>
+            <option value="deep">Deep (3 web sources)</option>
           </select>
         </div>
         <div>
@@ -284,7 +284,7 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
       </section>
 
       {result && (
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <section className="card space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="font-medium">Generated post</h2>
@@ -326,22 +326,23 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
 
           <section className="card">
             <h2 className="mb-3 font-medium">Critique</h2>
-            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <div className="mb-3 grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-2">
               {(Object.keys(result.critique.checks) as Array<keyof CriticResult["checks"]>).map((key) => (
                 <div
                   key={key}
-                  className={`rounded-lg px-3 py-2 text-xs ${
+                  className={`flex items-start gap-1.5 break-words rounded-lg px-3 py-2 text-xs ${
                     result.critique.checks[key] ? "bg-good/10 text-good" : "bg-bad/10 text-bad"
                   }`}
                 >
-                  {result.critique.checks[key] ? "✓" : "✗"} {CHECK_LABELS[key]}
+                  <span aria-hidden>{result.critique.checks[key] ? "✓" : "✗"}</span>
+                  <span className="min-w-0">{CHECK_LABELS[key]}</span>
                 </div>
               ))}
             </div>
             {result.critique.issues.length > 0 && (
               <div className="mb-3">
                 <div className="label">Issues</div>
-                <ul className="list-inside list-disc text-sm text-ink-200">
+                <ul className="list-outside list-disc space-y-1 pl-5 text-sm text-ink-200">
                   {result.critique.issues.map((issue, i) => (
                     <li key={i}>{issue}</li>
                   ))}
@@ -351,7 +352,7 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
             {result.critique.strengths.length > 0 && (
               <div className="mb-3">
                 <div className="label">Strengths</div>
-                <ul className="list-inside list-disc text-sm text-ink-200">
+                <ul className="list-outside list-disc space-y-1 pl-5 text-sm text-ink-200">
                   {result.critique.strengths.map((s, i) => (
                     <li key={i}>{s}</li>
                   ))}
@@ -361,7 +362,7 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
             {result.critique.suggested_revisions.length > 0 && (
               <div>
                 <div className="label">Suggested revisions</div>
-                <ul className="list-inside list-disc text-sm text-ink-200">
+                <ul className="list-outside list-disc space-y-1 pl-5 text-sm text-ink-200">
                   {result.critique.suggested_revisions.map((s, i) => (
                     <li key={i}>{s}</li>
                   ))}
@@ -373,12 +374,12 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
       )}
 
       {result && (
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6 lg:col-start-2 xl:col-start-3">
           <section className="card">
             <h2 className="mb-3 font-medium">Research sources</h2>
             <ul className="space-y-2 text-sm">
               {result.research.map((doc, i) => (
-                <li key={i} className="rounded-lg bg-ink-800 px-3 py-2">
+                <li key={i} className="break-words rounded-lg bg-ink-800 px-3 py-2">
                   <a href={doc.source_url} target="_blank" rel="noreferrer" className="text-accent-400 hover:underline">
                     {doc.title ?? doc.source_url}
                   </a>
@@ -395,7 +396,7 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
             <h2 className="mb-3 font-medium">Voice examples used</h2>
             <ul className="space-y-2 text-sm text-ink-400">
               {result.relevantVoiceExamples.map((ex, i) => (
-                <li key={i} className="rounded-lg bg-ink-800 px-3 py-2 line-clamp-2">
+                <li key={i} className="line-clamp-2 break-words rounded-lg bg-ink-800 px-3 py-2">
                   {ex}
                 </li>
               ))}

@@ -10,6 +10,9 @@ import { fetchRecentHackerNewsDiscussion } from "./hackernews";
 
 let cached: ResearchProvider | null = null;
 
+const BLOCK_PAGE =
+  /prove your humanity|verify you are (a )?human|are you a robot|enable javascript and cookies|access denied|captcha|just a moment\.\.\./i;
+
 export function getResearchProvider(): ResearchProvider {
   if (cached) return cached;
 
@@ -68,6 +71,9 @@ export async function researchTopic(request: ResearchRequest): Promise<Researche
   for (const result of scraped) {
     if (result.status !== "fulfilled") continue;
     const page = result.value;
+    // Skip bot-check / login walls (e.g. Reddit's "Prove your humanity") and
+    // near-empty pages - they aren't real research.
+    if (page.content.trim().length < 200 || BLOCK_PAGE.test(page.content.slice(0, 1500))) continue;
     const doc = normalizeDocument({
       title: page.title,
       author: page.author,
