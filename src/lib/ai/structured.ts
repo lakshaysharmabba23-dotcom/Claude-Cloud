@@ -13,7 +13,10 @@ export async function completeStructuredWithRetry<T>(params: {
   prompt: string;
   callRaw: (system: string | undefined, prompt: string) => Promise<string>;
 }): Promise<T> {
-  const jsonInstruction = `Respond with ONLY a single JSON object matching this description: "${params.schemaName}". No markdown fences, no commentary, no leading or trailing text - just the raw JSON object.`;
+  const jsonInstruction =
+    `Respond with ONLY a single JSON object for "${params.schemaName}", using EXACTLY these field names and types:\n` +
+    `${describeSchema(params.schema)}\n` +
+    `No markdown fences, no commentary, no leading or trailing text - just the raw JSON object.`;
 
   const firstPrompt = `${params.prompt}\n\n${jsonInstruction}`;
   const firstRaw = await params.callRaw(params.system, firstPrompt);
@@ -86,4 +89,47 @@ function extractJsonObject(rawText: string): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Renders a zod schema as a compact, TypeScript-like description of the JSON
+ * the model must return. Without this the model is only told a schema NAME
+ * and has to guess field names, so a model that guesses differently fails
+ * validation on every required field.
+ */
+export function describeSchema(schema: ZodType<any, ZodTypeDef, any>, indent = 0): string {
+  const def = (schema as unknown as { _def: Record<string, any> })._def;
+  const pad = "  ".repeat(indent);
+  switch (def.typeName) {
+    case "ZodObject": {
+      const shape = (def.shape as () => Record<string, ZodType<any, ZodTypeDef, any>>)();
+      const lines = Object.entries(shape).map(([key, value]) => `${pad}  "${key}": ${describeSchema(value, indent + 1)}`);
+      return `{\n${lines.join(",\n")}\n${pad}}`;
+    }
+    case "ZodArray":
+      return `[${describeSchema(def.type, indent)}, ...]`;
+    case "ZodEnum":
+      return (def.values as string[]).map((v) => JSON.stringify(v)).join(" | ");
+    case "ZodLiteral":
+      return JSON.stringify(def.value);
+    case "ZodString":
+      return "string";
+    case "ZodNumber":
+      return "number";
+    case "ZodBoolean":
+      return "boolean";
+    case "ZodNullable":
+      return `${describeSchema(def.innerType, indent)} | null`;
+    case "ZodOptional":
+    case "ZodDefault":
+      return describeSchema(def.innerType, indent);
+    case "ZodEffects":
+      return describeSchema(def.schema, indent);
+    case "ZodRecord":
+      return `{ string: ${describeSchema(def.valueType, indent)} }`;
+    case "ZodUnion":
+      return (def.options as Array<ZodType<any, ZodTypeDef, any>>).map((o) => describeSchema(o, indent)).join(" | ");
+    default:
+      return "any";
+  }
 }

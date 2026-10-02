@@ -61,3 +61,24 @@ describe("completeStructuredWithRetry", () => {
     ).rejects.toThrow(/failed validation twice/i);
   });
 });
+
+describe("describeSchema", () => {
+  it("lists every field name and type so the model doesn't have to guess", async () => {
+    const { describeSchema } = await import("@/lib/ai/structured");
+    const { z } = await import("zod");
+    const text = describeSchema(
+      z.object({
+        content: z.string(),
+        cta_type: z.enum(["question", "none"]),
+        evidence_used: z.array(z.string()).default([]),
+        note: z.string().nullable(),
+        nested: z.object({ n: z.number() })
+      })
+    );
+    expect(text).toContain('"content": string');
+    expect(text).toContain('"cta_type": "question" | "none"');
+    expect(text).toContain('"evidence_used": [string, ...]');
+    expect(text).toContain('"note": string | null');
+    expect(text).toContain('"n": number');
+  });
+});

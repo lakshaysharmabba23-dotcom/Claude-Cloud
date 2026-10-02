@@ -70,10 +70,12 @@ export class PostGenerator {
       "Write one LinkedIn post. Return the post content, which pattern name you followed, the evidence markers you used (e.g. ['R1']), and the CTA type you used."
     ].join("\n");
 
-    const result = await ai.completeStructured<GeneratedPost>({
+    // The model only writes the post itself; generation_metadata is filled
+    // in below from what we actually used, so it isn't asked for it.
+    const result = await ai.completeStructured<Omit<GeneratedPost, "generation_metadata">>({
       system,
       prompt,
-      schema: generatedPostSchema,
+      schema: generatedPostSchema.omit({ generation_metadata: true }),
       schemaName: "generated_post",
       temperature: 0.8,
       maxTokens: lengthSpec.maxTokens
@@ -82,7 +84,6 @@ export class PostGenerator {
     return {
       ...result,
       generation_metadata: {
-        ...result.generation_metadata,
         model: ai.model,
         provider: ai.name,
         research_sources: context.research.map((d) => d.source_url),
