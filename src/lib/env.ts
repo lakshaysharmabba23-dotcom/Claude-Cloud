@@ -37,6 +37,7 @@ export const env = {
     | "openai"
     | "openrouter"
     | "nvidia"
+    | "modal"
     | "mock",
   aiModel: process.env.AI_MODEL ?? "claude-opus-5-5",
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
@@ -45,6 +46,12 @@ export const env = {
   googleApiKey: process.env.GOOGLE_API_KEY ?? "",
   /** Google's "-latest" aliases track the current stable model without needing updates as dated versions rotate out. */
   googleAiModel: process.env.GOOGLE_AI_MODEL ?? "gemini-flash-latest",
+  modalBaseUrl:
+    process.env.MODAL_BASE_URL ?? "https://lakshay-sharma-bba23--ep-deepseek-v4-1-flash-server.us-west.modal.direct/v1",
+  modalTokenId: process.env.MODAL_TOKEN_ID ?? "",
+  modalTokenSecret: process.env.MODAL_TOKEN_SECRET ?? "",
+  modalModel: process.env.MODAL_AI_MODEL ?? "deepseek-ai/DeepSeek-V4.1-Flash",
+  modalReasoningEffort: process.env.MODAL_REASONING_EFFORT ?? "low",
   nvidiaApiKey: process.env.NVIDIA_API_KEY ?? "",
   /**
    * A small, fast, plain-instruct model - deliberately NOT a reasoning

@@ -6,6 +6,7 @@ import { OpenAIProvider } from "./openai";
 import { OpenRouterProvider } from "./openrouter";
 import { GoogleAIProvider } from "./google";
 import { NvidiaProvider } from "./nvidia";
+import { ModalProvider } from "./modal";
 
 let cached: AIProvider | null = null;
 
@@ -30,6 +31,15 @@ export function getAIProvider(): AIProvider {
       break;
     case "openrouter":
       cached = new OpenRouterProvider(env.openrouterModels, env.openrouterApiKey);
+      break;
+    case "modal":
+      cached = new ModalProvider({
+        model: env.modalModel,
+        baseUrl: env.modalBaseUrl,
+        tokenId: env.modalTokenId,
+        tokenSecret: env.modalTokenSecret,
+        reasoningEffort: env.modalReasoningEffort
+      });
       break;
     case "nvidia":
       cached = new NvidiaProvider(env.nvidiaModel, env.nvidiaApiKey);
