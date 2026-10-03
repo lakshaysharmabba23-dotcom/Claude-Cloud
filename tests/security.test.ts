@@ -42,3 +42,36 @@ describe("rateLimit", () => {
     expect(rateLimit("a", opts, 1).allowed).toBe(false);
   });
 });
+
+import { isSafePublicUrl } from "@/lib/security/url";
+describe("isSafePublicUrl", () => {
+  it("accepts normal public pages", () => {
+    expect(isSafePublicUrl("https://example.com/article?id=1")).toBe(true);
+    expect(isSafePublicUrl("http://blog.example.co.uk/post")).toBe(true);
+    expect(isSafePublicUrl("https://8.8.8.8/x")).toBe(true);
+  });
+  it("blocks localhost, private ranges, metadata and internal names", () => {
+    for (const u of [
+      "http://localhost:3000/admin",
+      "http://127.0.0.1/",
+      "http://10.0.0.5/",
+      "http://172.16.4.1/",
+      "http://192.168.1.1/",
+      "http://169.254.169.254/latest/meta-data",
+      "http://0.0.0.0/",
+      "http://2130706433/", // decimal form of 127.0.0.1
+      "http://[::1]/",
+      "http://intranet/",
+      "http://printer.local/",
+      "http://metadata.google.internal/"
+    ]) {
+      expect(isSafePublicUrl(u), u).toBe(false);
+    }
+  });
+  it("blocks non-http schemes and embedded credentials", () => {
+    expect(isSafePublicUrl("file:///etc/passwd")).toBe(false);
+    expect(isSafePublicUrl("ftp://example.com/x")).toBe(false);
+    expect(isSafePublicUrl("https://user:pass@example.com/")).toBe(false);
+    expect(isSafePublicUrl("not a url")).toBe(false);
+  });
+});

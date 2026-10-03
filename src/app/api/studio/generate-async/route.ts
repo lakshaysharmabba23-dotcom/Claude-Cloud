@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicUrlSchema } from "@/lib/security/schemas";
 import { enforceRateLimit } from "@/lib/security/rate-limit";
 import { z } from "zod";
 import { tasks } from "@trigger.dev/sdk/v3";
@@ -10,7 +11,7 @@ const requestSchema = z.object({
   audience: z.string().min(2),
   objective: z.string().min(2),
   selectedPatternId: z.string().optional(),
-  sourceUrls: z.array(z.string().url()).optional(),
+  sourceUrls: z.array(publicUrlSchema).max(5).optional(),
   researchDepth: z.enum(["quick", "standard", "deep"]).optional(),
   postLength: postLengthSchema.optional()
 });

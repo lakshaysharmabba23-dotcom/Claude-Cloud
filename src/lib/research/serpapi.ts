@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { requireEnv } from "@/lib/env";
 import { getAIProvider } from "@/lib/ai";
+import { safeFetchText } from "@/lib/security/url";
 import { extractTextFromHtml } from "./html-extract";
 import type { ExtractedStructuredData, ResearchProvider, ScrapedPage, SearchResult } from "./provider";
 
@@ -54,14 +55,9 @@ export class SerpApiProvider implements ResearchProvider {
   }
 
   async scrape(url: string): Promise<ScrapedPage> {
-    const res = await fetch(url, {
+    const { text: html } = await safeFetchText(url, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; ContentIntelligenceAgent/1.0)" }
     });
-    if (!res.ok) {
-      throw new Error(`Fetching ${url} failed (${res.status}).`);
-    }
-
-    const html = await res.text();
     const { title, text } = extractTextFromHtml(html);
 
     if (!text) {
