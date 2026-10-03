@@ -280,8 +280,25 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
             Running as a background job - this can take a minute or two with real providers.
           </p>
         )}
-        {error && <p className="text-sm text-bad">{error}</p>}
+        {error && (
+          <p className="rounded-lg border border-bad/40 bg-bad/10 px-3 py-2 text-sm text-bad" role="alert">
+            {error}
+          </p>
+        )}
       </section>
+
+      {!result && (
+        <section className="card flex flex-col justify-center space-y-3 lg:col-span-1 xl:col-span-2">
+          <div className="eyebrow">{loading ? "Working" : "Your post will appear here"}</div>
+          <h2 className="display text-2xl">{loading ? "Researching and writing..." : "Fill in the brief, then Generate"}</h2>
+          <ol className="list-decimal space-y-1 pl-5 text-sm text-ink-400">
+            <li>It researches the topic and keeps the real source links.</li>
+            <li>It writes a draft using a proven pattern and the voice profile.</li>
+            <li>A critic checks it. You edit it, then approve or reject it.</li>
+          </ol>
+          <p className="text-xs text-ink-400">Nothing is published automatically.</p>
+        </section>
+      )}
 
       {result && (
         <div className="min-w-0 space-y-6">

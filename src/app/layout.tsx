@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {env.demoMode && (
           <div className="border-b border-ink-700 bg-ink-800 px-4 py-2 text-center text-xs text-ink-200">
             <span className="eyebrow mr-2">Demo mode</span>
-            Everything shown is fictional seed data. No paid API calls are made.
+            Everything shown is fictional sample data, labelled as such. No paid API calls are made.
           </div>
         )}
         <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">{children}</main>

@@ -14,8 +14,9 @@ interface Props {
 
 const METRIC_FIELDS = ["impressions", "likes", "comments", "reposts", "profile_views", "clicks"] as const;
 
-export function AnalyticsClient({ published, performance: initialPerformance, patternPerformance, patterns }: Props) {
+export function AnalyticsClient({ published, performance: initialPerformance, patternPerformance: initialPatternRows, patterns }: Props) {
   const [performance, setPerformance] = useState(initialPerformance);
+  const [patternPerformance, setPatternRows] = useState(initialPatternRows);
   const [selectedPost, setSelectedPost] = useState(published[0]?.id ?? "");
   const [form, setForm] = useState<Record<(typeof METRIC_FIELDS)[number], string>>({
     impressions: "",
@@ -27,6 +28,7 @@ export function AnalyticsClient({ published, performance: initialPerformance, pa
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const patternById = useMemo(() => new Map(patterns.map((p) => [p.id, p])), [patterns]);
 
@@ -37,6 +39,7 @@ export function AnalyticsClient({ published, performance: initialPerformance, pa
     }
     setSaving(true);
     setError(null);
+    setSaved(false);
     try {
       const body = {
         published_post_id: selectedPost,
@@ -56,6 +59,9 @@ export function AnalyticsClient({ published, performance: initialPerformance, pa
       if (!res.ok) throw new Error(data.error?.formErrors?.join(", ") ?? data.error ?? "Failed to save.");
       setPerformance((prev) => [...prev, data.snapshot]);
       setForm({ impressions: "", likes: "", comments: "", reposts: "", profile_views: "", clicks: "" });
+      setSaved(true);
+      // The server recomputed the per-pattern tables; use them directly (no page refresh needed).
+      if (Array.isArray(data.patternPerformance)) setPatternRows(data.patternPerformance);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -68,9 +74,12 @@ export function AnalyticsClient({ published, performance: initialPerformance, pa
   const hookRows = patternPerformance.filter((r) => patternById.get(r.pattern_id)?.category === "hook");
   const ctaRows = patternPerformance.filter((r) => patternById.get(r.pattern_id)?.category === "cta");
 
+  // Newest first, capped so the page stays readable once many snapshots exist.
+  const SNAPSHOT_LIMIT = 15;
   const sortedByDate = [...performance].sort(
-    (a, b) => new Date(a.captured_at).getTime() - new Date(b.captured_at).getTime()
+    (a, b) => new Date(b.captured_at).getTime() - new Date(a.captured_at).getTime()
   );
+  const visibleSnapshots = sortedByDate.slice(0, SNAPSHOT_LIMIT);
 
   return (
     <div className="space-y-8">
@@ -80,8 +89,13 @@ export function AnalyticsClient({ published, performance: initialPerformance, pa
           Enter numbers exactly as shown in LinkedIn&apos;s own post analytics. Nothing here is fetched or
           estimated automatically.
         </p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-4">
+            {published.length === 0 && (
+              <p className="mb-2 rounded-lg border border-ink-700 bg-ink-800 px-3 py-2 text-sm text-ink-200">
+                Nothing is published yet. Approve a draft in the Post Studio first, then come back to log how it did.
+              </p>
+            )}
             <label className="label">Published post</label>
             <select className="input" value={selectedPost} onChange={(e) => setSelectedPost(e.target.value)}>
               {published.map((p) => (
@@ -104,16 +118,24 @@ export function AnalyticsClient({ published, performance: initialPerformance, pa
             </div>
           ))}
         </div>
-        <button className="btn-primary" onClick={submitSnapshot} disabled={saving}>
+        <button className="btn-primary" onClick={submitSnapshot} disabled={saving || published.length === 0}>
           {saving ? "Saving..." : "Save snapshot"}
         </button>
-        {error && <p className="text-sm text-bad">{error}</p>}
+        {error && (
+          <p className="rounded-lg border border-bad/40 bg-bad/10 px-3 py-2 text-sm text-bad" role="alert">
+            {error}
+          </p>
+        )}
+        {saved && <p className="text-sm text-good">Snapshot saved. The tables below are updated.</p>}
       </section>
 
       <section className="card">
-        <h2 className="mb-3 font-medium">Performance over time</h2>
+        <h2 className="mb-1 font-medium">Performance over time</h2>
+        <p className="mb-3 text-xs text-ink-400">
+          Newest first. Showing {visibleSnapshots.length} of {sortedByDate.length} snapshots.
+        </p>
         <TableShell headers={["Captured", "Impressions", "Likes", "Comments", "Reposts", "Engagement rate"]}>
-          {sortedByDate.map((row) => (
+          {visibleSnapshots.map((row) => (
             <tr key={row.id} className="border-t border-ink-700">
               <Td>{new Date(row.captured_at).toLocaleDateString()}</Td>
               <Td>{row.impressions ?? "-"}</Td>
@@ -123,6 +145,11 @@ export function AnalyticsClient({ published, performance: initialPerformance, pa
               <Td>{row.engagement_rate !== null ? `${(row.engagement_rate * 100).toFixed(2)}%` : "-"}</Td>
             </tr>
           ))}
+          {sortedByDate.length === 0 && (
+            <tr className="border-t border-ink-700">
+              <Td colSpan={6}>No results recorded yet. Numbers only appear after you enter them - nothing is estimated.</Td>
+            </tr>
+          )}
         </TableShell>
       </section>
 
@@ -145,10 +172,15 @@ export function AnalyticsClient({ published, performance: initialPerformance, pa
               </tr>
             ))
           )}
+        {byPattern.size === 0 && (
+            <tr className="border-t border-ink-700">
+              <Td colSpan={5}>No pattern results yet. They appear once published posts have recorded performance.</Td>
+            </tr>
+          )}
         </TableShell>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="card">
           <h2 className="mb-3 font-medium">Performance by topic</h2>
           <TableShell headers={["Topic", "Posts analyzed", "Median engagement rate", "Confidence"]}>
@@ -168,6 +200,11 @@ export function AnalyticsClient({ published, performance: initialPerformance, pa
                 </tr>
               );
             })}
+          {byTopic.size === 0 && (
+              <tr className="border-t border-ink-700">
+                <Td colSpan={4}>No topic results yet.</Td>
+              </tr>
+            )}
           </TableShell>
         </section>
 

@@ -18,8 +18,8 @@ export async function POST(request: Request) {
     const snapshot = await addPerformanceSnapshot(parsed.data);
     // Recompute the feedback-loop aggregation immediately so /analytics
     // reflects this new data point without a separate background step.
-    await recomputePatternPerformance();
-    return NextResponse.json({ snapshot });
+    const patternPerformance = await recomputePatternPerformance();
+    return NextResponse.json({ snapshot, patternPerformance });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }

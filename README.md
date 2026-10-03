@@ -1,129 +1,134 @@
 # LinkedIn Content Intelligence Agent
 
-A research-grounded **content intelligence pipeline** for LinkedIn writing - not a "type a topic, get a post" generator.
+A research-grounded pipeline for writing LinkedIn posts. It is not a "type a topic, get a post" box.
 
-It researches real (or, in demo mode, clearly fictional) public content, extracts *why* posts work as reusable patterns, builds a structured model of your own writing voice, and only then generates a post - grounded in retrieved research, a named pattern, and your voice. Every generated post is critiqued against explicit checks, reviewed by a human before anything is recorded as published, and its real performance (entered manually) feeds back into which patterns/topics get recommended next.
+It studies what works in real creator posts, writes in a plain voice, checks its own draft, and makes a human approve every post. Nothing is ever published automatically.
+
+![Post Studio](docs/screenshots/06-studio-generated.png)
+
+> **Screenshots use demo mode.** Every record you see in them is fictional sample data and is labelled `[FICTIONAL]` or shown under a "Demo mode" banner. Demo mode makes no paid API calls and runs fully offline.
+
+## What it does
 
 ```
-research -> normalize -> extract patterns -> pattern library -> voice model
-   -> topic research -> retrieval -> generate -> critique -> human review
-   -> publish record -> performance -> pattern analysis -> feedback loop
+creator posts  ->  pattern library  ->  voice profile
+        topic research (web + Hacker News, real source links)
+                          |
+        generate  ->  critique  ->  human edit + approve
+                          |
+        record published  ->  enter results  ->  analytics  ->  better pattern choice
 ```
 
-## Why this is not "an AI post generator"
+| Step | Screen | What happens |
+|---|---|---|
+| Research | `/research` | The creator posts the library is built from, with author, date and engagement. |
+| Patterns | `/patterns` | A library of reusable hooks, structures, storytelling styles and CTAs, with examples. |
+| Voice | `/voice` | A structured profile of a writing voice (tone, sentence length, formatting habits). |
+| Studio | `/studio` | Pick a topic, audience and length. It researches, writes, and critiques. You edit, then approve or reject. |
+| Analytics | `/analytics` | You enter real results from LinkedIn. It shows what performs, with sample size and confidence. |
 
-A typical AI post generator is one prompt: topic in, post out. That's a demo, not a system. This project treats each step above as its own layer with its own data model, its own tests, and its own UI surface:
+### How a post is generated
 
-| If it were a generator... | What this does instead |
-|---|---|
-| Prompt engineering, hidden from you | A visible **pattern library** (`/patterns`) of hooks, structures, storytelling mechanisms, evidence types, CTAs, and formatting - each discovered via evidence-based extraction over real posts, not hand-waved |
-| "Sounds like AI" output | A **voice model** (`/voice`) built only from *your* own writing samples, with an explicit, inspectable profile (tone, sentence length, formality, formatting habits, etc.) |
-| One shot, no citations | Every generation is grounded in **topic research** with real source URLs, and the studio shows you exactly which research, pattern, and voice examples were used |
-| "Looks good to me" | A **critic** that runs deterministic checks (originality, generic-language, unsupported-claims, CTA presence) *and* an LLM-assisted review against explicit named criteria - never a single opaque quality score |
-| Auto-publish | **Human review is mandatory** - approve, reject, edit, or regenerate. Nothing is ever posted automatically |
-| No feedback loop | Manually-entered performance data is aggregated **per pattern/topic/audience**, always with sample size and a low/medium/high confidence label, phrased as "associated with" - never a causal claim |
+1. **Research.** A web search plus recent Hacker News threads, always keeping the real source URL. Bot-check pages are skipped.
+2. **Pattern.** One content pattern is chosen. Once a pattern has 3 or more of your recorded posts, the choice follows your own engagement. Before that, it follows how often creators used it.
+3. **Models.** The three highest-engagement creator posts are shown to the model so it can learn hook, rhythm and structure. It is told not to copy them.
+4. **Copywriting rules.** A plain-language prompt: short words, concrete details, no AI-sounding phrases, line length that fits the idea, no source tags in the post.
+5. **Critique.** Deterministic checks (copying, cliches, unsupported numbers) plus a model review against named criteria. There is no single opaque score.
+6. **Human review.** You edit, approve or reject. Approving records the post as published. Approve is safe to click twice.
 
-See `docs/architecture.md` for the full layer-by-layer breakdown.
+## What is real and what is sample
 
-## Quickstart (fully offline, no API keys)
+- **Real end to end:** the Studio flow and manual performance entry.
+- **Curated, not automatic:** the pattern library and the sample voice profile are loaded from hand-analysed data (`src/lib/data/real-gtm-patterns.ts`). The model-based pattern extraction in `src/lib/patterns/extract.ts` exists but nothing in the app triggers it yet.
+- **Voice sample:** the shipped voice profile comes from one sample post written for this project. The Voice screen labels it as a sample. Add your own writing to replace it.
+- **Creator posts:** public posts from a manual export, shown with attribution and a link. This app does not scrape LinkedIn. They are used here for analysis and as style references, not republished as new posts.
+- **Metrics:** never fetched or estimated. Every number in Analytics is typed in by a person.
+
+## Run it
+
+### Demo mode (no keys, no database)
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. `DEMO_MODE=true` is the default (see `.env.example`), so:
+Open http://localhost:3000. With `DEMO_MODE` unset, development runs in demo mode: mock research, a mock model, and an in-memory store with labelled fictional data.
 
-- Research uses `MockResearchProvider` - deterministic, clearly-labeled `[FICTIONAL]` documents, no network calls.
-- Pattern extraction, voice analysis, generation, and critique use `MockAIProvider` - a heuristic, content-aware mock (not hardcoded text) standing in for a real LLM.
-- Retrieval uses `MockEmbeddingProvider` - a real (if simple) bag-of-words embedding, so semantic ranking genuinely works offline.
-- Data reads/writes an in-memory store seeded from `src/lib/data/seed-data.ts` (20 creators, 100 source posts, 15 patterns, 20 voice examples, 20 published posts, and performance snapshots for each) - see "Mock mode" in `docs/architecture.md`.
+### Real mode
 
-Walk the pipeline in the UI: `/dashboard` -> `/patterns` -> `/voice` -> `/studio` (generate, review, approve) -> `/analytics`.
-
-## Running against real services
-
-Copy `.env.example` to `.env.local`, set `DEMO_MODE=false`, and fill in:
-
-- **Supabase**: create a project, enable the `vector` extension, run `supabase/migrations/0001_init.sql`.
-- **Research**: a Firecrawl API key (`FIRECRAWL_API_KEY`).
-- **AI**: an Anthropic, OpenAI, or OpenRouter key (`AI_PROVIDER` + matching key).
-- **Embeddings**: an OpenAI key for `text-embedding-3-small` (or point `EMBEDDING_PROVIDER` elsewhere).
-- **Trigger.dev**: `TRIGGER_PROJECT_ID` / `TRIGGER_SECRET_KEY` for the background tasks in `src/trigger/`.
-
-Every provider is behind an interface (`ResearchProvider`, `AIProvider`, `EmbeddingProvider`) specifically so a new vendor can be added without touching pipeline logic - see `docs/research-system.md`.
+1. Copy `.env.example` to `.env.local` and set `DEMO_MODE=false`.
+2. **Database (Supabase):** create a project, enable the `vector` extension, then run `supabase/migrations/0001_init.sql` and `0002_security_and_integrity.sql` in the SQL Editor. The second turns on Row Level Security and prevents duplicate records.
+3. **Model:** set `AI_PROVIDER` and its key. Supported: `google`, `modal` (your own endpoint), `nvidia`, `openrouter`, `anthropic`, `openai`. With `AI_PROVIDER=modal` and an `NVIDIA_API_KEY`, NVIDIA is used as a backup.
+4. **Research:** `RESEARCH_PROVIDER` (`seo-pipeline`, `serpapi` or `firecrawl`) and its settings.
+5. **Background jobs:** generation runs as a Trigger.dev job so it can take minutes. Set `TRIGGER_SECRET_KEY` and `TRIGGER_PROJECT_ID`. The job needs its own copy of the model, database and `DEMO_MODE` variables in the Trigger.dev dashboard (Production). A GitHub Action (`.github/workflows/trigger-deploy.yml`) deploys the job on every change under `src/`; it needs a `TRIGGER_ACCESS_TOKEN` repository secret.
+6. **Password:** set `APP_PASSWORD`. In production the whole app asks for it (browser login box, any username) and refuses to serve without it.
+7. **Sample data:** with `SEED_ADMIN_TOKEN` set, call `/api/admin/seed-real-patterns` and `/api/admin/seed-real-voice` once (add `?token=...`). `/api/admin/env-check` and `/api/admin/data-check` report what the server can see, without showing secrets.
 
 ## Commands
 
 ```bash
-npm run dev         # start the app
-npm run build        # production build (see note below)
-npm test              # run the Vitest suite
-npm run typecheck  # tsc --noEmit
-npm run seed          # (re)generate seed fixtures - see scripts/seed
+npm run dev         # development server
+npm run build       # production build
+npm start           # serve the production build
+npm test            # Vitest suite
+npm run typecheck   # tsc --noEmit
+npm run lint        # ESLint
 ```
 
-> **Build note:** `npm run build` sets `NODE_ENV=production` explicitly before invoking `next build`. Some sandboxed/CI shells export `NODE_ENV=development` in a way `next build`'s internal override doesn't fully win against, which causes a Next.js static-generation worker to mix a production runtime with a development React bundle and crash prerendering `/404`, `/500`, and `/_not-found` with `Cannot read properties of null (reading 'useContext')`. Setting it explicitly in the script sidesteps that.
+## Stack
+
+Next.js 14 (App Router) · TypeScript · Tailwind · Supabase Postgres · Trigger.dev v4 · Zod · Vitest. Models are behind one interface (`AIProvider`) so a vendor can be swapped without touching the pipeline. Structured output is validated with Zod and retried once with the error fed back.
 
 ## Project structure
 
 ```
 src/
-  app/                    Next.js App Router pages + API routes
-    dashboard/ patterns/ voice/ studio/ analytics/
-    api/studio/generate  api/drafts/[id]  api/voice/analyze  api/performance
+  app/                 pages (dashboard, research, patterns, voice, studio, analytics) + API routes
+  middleware.ts        password gate for pages and API
   lib/
-    types/schemas.ts       Zod schemas - the single source of truth for every structured object
-    normalization/         URL canonicalization, content hashing, dedup
-    research/              ResearchProvider interface + Firecrawl + mock + orchestration
-    ai/                    AIProvider interface + Anthropic/OpenAI/OpenRouter + mock
-    embeddings/            EmbeddingProvider interface + mock/OpenAI + retrieval ranking
-    patterns/              Evidence-based pattern extraction
-    voice/                 Voice profile analysis
-    generation/            Context builder, PostGenerator, full studio pipeline
-    critic/                Deterministic checks + LLM-assisted review, merged
-    performance/           Engagement-rate math, median, confidence, pattern aggregation
-    data/                  Repository layer (Supabase or in-memory demo store) + seed data
-  trigger/                 Trigger.dev background tasks
-supabase/migrations/       Full Postgres + pgvector schema, RPC search functions
-tests/                     Vitest suite (61 tests)
-docs/                      Deep-dive docs per layer (linked below)
+    ai/                provider interface, vendors, fallback chain, structured-output validation
+    research/          search + scrape providers, Hacker News, orchestration
+    generation/        context, generator (copywriting prompt), pipeline, pattern selection
+    critic/            deterministic checks + model review
+    performance/       engagement math and per-pattern aggregation
+    data/              repository (Supabase or in-memory demo store), seed data, draft rules
+    security/          password check, rate limit, public-URL checks
+  trigger/             Trigger.dev background job(s)
+supabase/migrations/   schema + security/integrity migration
+tests/                 unit tests (96)
+docs/                  per-layer docs, audit, demo walkthrough, screenshots
 ```
+
+## Security notes
+
+- Password gate on every page and API route; rate limit on the paid routes (per server instance, so best-effort on serverless).
+- Row Level Security enabled by migration `0002`. The server uses the service-role key, which bypasses it.
+- `sourceUrls` accepts only public http(s) addresses. Redirects, timeouts and size are checked on direct fetches. A public domain that secretly points to a private address is not caught.
+- Admin routes need both the app password and `SEED_ADMIN_TOKEN`.
+- No secrets are stored in the repository.
+
+## Known limitations
+
+See [`docs/audit.md`](docs/audit.md) for the full list. The main ones that remain:
+
+- Pattern extraction from new posts is manual for now.
+- Research quality depends on the search provider. Some pages are thin, and Hacker News items add little detail.
+- The voice profile needs your own writing to be meaningful.
+- A model critic can still miss claims that are not numbers.
+- Rate limiting and URL checks have the limits described above.
 
 ## Documentation
 
-- [`docs/architecture.md`](docs/architecture.md) - full pipeline, data model, layering rules
-- [`docs/research-system.md`](docs/research-system.md) - research provider abstraction, normalization, dedup
-- [`docs/pattern-library.md`](docs/pattern-library.md) - extraction schema, pattern library UI
-- [`docs/voice-model.md`](docs/voice-model.md) - voice profile schema, analysis approach
-- [`docs/generation.md`](docs/generation.md) - generation context, PostGenerator, critic
-- [`docs/feedback-loop.md`](docs/feedback-loop.md) - performance tracking, pattern-performance aggregation, confidence
+- [`docs/demo-walkthrough.md`](docs/demo-walkthrough.md) - a 3 to 5 minute walkthrough script
+- [`docs/audit.md`](docs/audit.md) - engineering audit of the system
+- [`docs/architecture.md`](docs/architecture.md), [`docs/research-system.md`](docs/research-system.md), [`docs/pattern-library.md`](docs/pattern-library.md), [`docs/voice-model.md`](docs/voice-model.md), [`docs/generation.md`](docs/generation.md), [`docs/feedback-loop.md`](docs/feedback-loop.md) - deeper notes per layer (written earlier; where they differ from this README, this README is current)
 
-## What is real and what is manual
+## Screenshots
 
-- **Real end to end:** Studio (research -> generate -> critique -> human approval -> published record) and manual performance entry.
-- **Curated, not automatic:** the pattern library and voice profile are loaded from hand-analysed data (`src/lib/data/real-gtm-patterns.ts`, seeded through the admin routes). The LLM extraction code in `src/lib/patterns/extract.ts` exists but nothing in the app triggers it yet.
-- **Feedback:** once a pattern has at least 3 recorded posts, automatic pattern choice ranks by your own engagement; before that it uses how often creators used each pattern.
-
-## Security setup (production)
-
-1. Set `APP_PASSWORD` in the hosting environment. The whole app asks for it (browser login box, any username). If it is missing in production the app refuses to serve.
-2. Run `supabase/migrations/0002_security_and_integrity.sql` in the Supabase SQL Editor. It turns on Row Level Security (so the public anon key can read/write nothing), removes duplicate publish/performance rows and prevents new ones.
-3. Set `DEMO_MODE=false` explicitly in production. If it is unset, production already defaults to real mode and errors loudly when Supabase is not configured.
-
-## Limitations
-
-- **Demo-mode retrieval and generation quality is heuristic, not a real model.** `MockAIProvider` and `MockEmbeddingProvider` are designed to exercise every layer of the pipeline honestly (they reason over the actual input text, they don't hardcode output) - but they are not a substitute for a real LLM's writing or judgment quality. Point the app at a real provider for representative output.
-- **The in-memory demo store resets on process restart.** It exists so the whole app runs with zero external services; for persistence, configure Supabase.
-- **Pattern extraction confidence is self-reported by the model**, not independently validated against a labeled dataset.
-- **The critic's deterministic checks are heuristic** (keyword/n-gram based). It does flag numbers in a draft that appear in none of the research or your own examples, but it is not a full fact-checking system.
-- **Rate limiting is per server instance** (in memory), so on serverless hosting it is best-effort, not a hard global cap.
-- **URL safety checks inspect the hostname** and redirects; they cannot stop a public domain whose DNS points at a private address.
-- **No LinkedIn scraping or automated publishing exists anywhere in this codebase**, by design - see the "Security / safety" section of `docs/architecture.md`.
-
-## Future improvements
-
-- Real pgvector-backed retrieval end-to-end (the SQL functions exist in the migration; the in-memory demo path uses the same ranking logic in `src/lib/embeddings/retrieval.ts` but without a live index).
-- A/B-style draft comparison in the Studio (generate two candidates, critique both, compare).
-- A labeled evaluation set for pattern-extraction confidence calibration.
-- Multi-user voice profiles and pattern libraries (currently single-tenant by design, to keep the demo focused).
+| | |
+|---|---|
+| ![Dashboard](docs/screenshots/01-dashboard.png) Dashboard | ![Research](docs/screenshots/02-research.png) Research |
+| ![Patterns](docs/screenshots/03-patterns.png) Patterns | ![Voice](docs/screenshots/04-voice.png) Voice |
+| ![Studio before](docs/screenshots/05-studio-empty.png) Studio, before generating | ![Approved](docs/screenshots/07-studio-approved.png) After approval |
+| ![Analytics](docs/screenshots/08-analytics.png) Analytics | ![Dark](docs/screenshots/09-dashboard-dark.png) Dark theme |

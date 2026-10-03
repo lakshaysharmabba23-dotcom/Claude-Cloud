@@ -18,7 +18,7 @@ It throws if `selected_patterns` is empty - generation is not allowed to proceed
 2. **Only use provided facts** - "never invent a statistic, study, or example" beyond what's in the research block.
 3. **Match the target voice** - via the same `summarizeVoiceProfile()` description the critic later checks against.
 
-The model is asked to cite which research snippet (`[R1]`, `[R2]`, ...) backs any fact it uses, surfaced as `evidence_used`. Output is validated against `generatedPostSchema` (content, selected pattern name, evidence used, CTA type, generation metadata including the real research source URLs) - never freeform text trusted as-is.
+The model is told which research items it drew on (`[R1]`, `[R2]`, ...) and reports them in `evidence_used` only. These markers never appear inside the post text (the prompt forbids it and `stripSourceMarkers` removes any that slip through). Output is validated against `generatedPostSchema` - never freeform text trusted as-is. The critic additionally flags any number in the draft that is not in the research, the user's own examples, or the request.
 
 ## `runStudioPipeline()`: the full orchestration
 

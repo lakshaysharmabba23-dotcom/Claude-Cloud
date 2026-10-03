@@ -7,8 +7,8 @@ export default async function DashboardPage() {
   const summary = await getDashboardSummary();
 
   const stats = [
-    { label: "Posts researched", value: summary.counts.sourcePosts },
-    { label: "Patterns discovered", value: summary.counts.patterns },
+    { label: "Source posts", value: summary.counts.sourcePosts },
+    { label: "Patterns in library", value: summary.counts.patterns },
     { label: "Drafts generated", value: summary.counts.drafts },
     { label: "Published posts", value: summary.counts.published },
     { label: "Performance snapshots", value: summary.counts.performanceSnapshots }
@@ -20,7 +20,7 @@ export default async function DashboardPage() {
         <div className="eyebrow mb-3">Content Intelligence</div>
         <h1 className="display text-4xl sm:text-5xl">Dashboard</h1>
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-200">
-          A snapshot of the whole pipeline: research collected, patterns discovered, drafts generated,
+          A snapshot of the whole pipeline: source posts collected, patterns in the library, drafts generated,
           posts published, and performance recorded.
         </p>
       </div>
@@ -81,10 +81,10 @@ export default async function DashboardPage() {
 
       <section className="card">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-medium">Recent research</h2>
-          <span className="text-xs text-ink-400">
-            Showing {summary.recentResearch.length} most recent of {summary.counts.sourcePosts}
-          </span>
+          <h2 className="font-medium">Recent source posts</h2>
+          <Link href="/research" className="text-xs text-accent-400 hover:underline">
+            Showing {summary.recentResearch.length} of {summary.counts.sourcePosts} &middot; View all &rarr;
+          </Link>
         </div>
         <ul className="grid gap-2 sm:grid-cols-2">
           {summary.recentResearch.map((post) => (
@@ -93,6 +93,9 @@ export default async function DashboardPage() {
               <p className="mt-1 line-clamp-2 text-ink-400">{post.content}</p>
             </li>
           ))}
+          {summary.recentResearch.length === 0 && (
+            <li className="text-sm text-ink-400">No source posts yet.</li>
+          )}
         </ul>
       </section>
     </div>

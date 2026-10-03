@@ -80,7 +80,7 @@ See `supabase/migrations/0001_init.sql` for the full DDL. Summary:
 - **post_performance** - manually-entered metrics, one row per snapshot, many snapshots per post.
 - **pattern_performance** - the feedback-loop aggregation: median engagement/impressions per pattern+topic+audience, with `posts_analyzed` and `confidence`.
 
-pgvector (`vector` extension) backs semantic search on `source_posts`, `voice_examples`, `content_research`, and `content_patterns`, via the `match_*` SQL functions at the bottom of the migration. Plain SQL filters (category, topic, audience, status) are used everywhere a vector search isn't actually needed - see `docs/research-system.md`.
+The schema includes pgvector columns and `match_*` SQL functions, but they are **not used yet**: nothing writes embeddings and the pipeline selects voice examples and patterns with plain filters. They are kept for future semantic search. Plain SQL filters (category, topic, audience, status) are used everywhere a vector search isn't actually needed - see `docs/research-system.md`.
 
 ## Mock mode
 
