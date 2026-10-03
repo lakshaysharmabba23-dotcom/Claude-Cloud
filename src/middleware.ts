@@ -2,14 +2,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { checkBasicAuth } from "@/lib/security/basic-auth";
 
 /**
- * Gates the whole app (pages and API routes) behind one shared password
- * (APP_PASSWORD) using the browser's built-in login prompt. Without this,
- * every route - including the ones that spend AI credit and edit data - was
- * public.
+ * Optional shared-password gate (HTTP Basic auth, the browser's built-in login
+ * box) for the whole app, pages and API routes alike.
  *
- * - Production with APP_PASSWORD unset: blocked with a clear message (fail
- *   closed), so a deploy can never be accidentally open.
- * - Development / tests with APP_PASSWORD unset: open, for local convenience.
+ * - APP_PASSWORD set: every request needs it (any username).
+ * - APP_PASSWORD not set: the app is open. That is fine for a sample-data
+ *   demo; set APP_PASSWORD before pointing real credentials or private data at
+ *   a public URL, because the routes that call the AI model are then reachable
+ *   by anyone with the link (they are rate limited, but not locked).
  */
 export function middleware(request: NextRequest) {
   const password = process.env.APP_PASSWORD;
@@ -17,13 +17,7 @@ export function middleware(request: NextRequest) {
 
   if (decision === "ok") return NextResponse.next();
 
-  if (decision === "not-configured") {
-    if (process.env.NODE_ENV !== "production") return NextResponse.next();
-    return new NextResponse(
-      "This app is locked because APP_PASSWORD is not set. Add APP_PASSWORD in the hosting environment variables and redeploy.",
-      { status: 503, headers: { "content-type": "text/plain; charset=utf-8" } }
-    );
-  }
+  if (decision === "not-configured") return NextResponse.next();
 
   return new NextResponse("Authentication required.", {
     status: 401,

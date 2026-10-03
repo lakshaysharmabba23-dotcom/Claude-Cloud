@@ -58,11 +58,11 @@ Open http://localhost:3000. With `DEMO_MODE` unset, development runs in demo mod
 ### Real mode
 
 1. Copy `.env.example` to `.env.local` and set `DEMO_MODE=false`.
-2. **Database (Supabase):** create a project, enable the `vector` extension, then run `supabase/migrations/0001_init.sql` and `0002_security_and_integrity.sql` in the SQL Editor. The second turns on Row Level Security and prevents duplicate records.
+2. **Database (Supabase):** create a project, enable the `vector` extension, then run `supabase/migrations/0001_init.sql` in the SQL Editor. Also run `0002_security_and_integrity.sql` (recommended): it turns on Row Level Security and prevents duplicate records.
 3. **Model:** set `AI_PROVIDER` and its key. Supported: `google`, `modal` (your own endpoint), `nvidia`, `openrouter`, `anthropic`, `openai`. With `AI_PROVIDER=modal` and an `NVIDIA_API_KEY`, NVIDIA is used as a backup.
 4. **Research:** `RESEARCH_PROVIDER` (`seo-pipeline`, `serpapi` or `firecrawl`) and its settings.
 5. **Background jobs:** generation runs as a Trigger.dev job so it can take minutes. Set `TRIGGER_SECRET_KEY` and `TRIGGER_PROJECT_ID`. The job needs its own copy of the model, database and `DEMO_MODE` variables in the Trigger.dev dashboard (Production). A GitHub Action (`.github/workflows/trigger-deploy.yml`) deploys the job on every change under `src/`; it needs a `TRIGGER_ACCESS_TOKEN` repository secret.
-6. **Password:** set `APP_PASSWORD`. In production the whole app asks for it (browser login box, any username) and refuses to serve without it.
+6. **Password (optional):** set `APP_PASSWORD` and the whole app asks for it (browser login box, any username). Left empty, the app is open. That is fine for a sample-data demo, but anyone with the link can then run the model, so set it before sharing a link that has real keys behind it.
 7. **Sample data:** with `SEED_ADMIN_TOKEN` set, call `/api/admin/seed-real-patterns` and `/api/admin/seed-real-voice` once (add `?token=...`). `/api/admin/env-check` and `/api/admin/data-check` report what the server can see, without showing secrets.
 
 ## Commands
@@ -102,10 +102,10 @@ docs/                  per-layer docs, audit, demo walkthrough, screenshots
 
 ## Security notes
 
-- Password gate on every page and API route; rate limit on the paid routes (per server instance, so best-effort on serverless).
-- Row Level Security enabled by migration `0002`. The server uses the service-role key, which bypasses it.
+- Optional password gate (`APP_PASSWORD`) on every page and API route; rate limit on the paid routes (10 per 10 minutes per caller; per server instance, so best-effort on serverless). **With no password set, the app is open.**
+- Row Level Security and duplicate protection come from migration `0002`, which is recommended but optional for a demo. If you have not run it, the public Supabase key can read and write the tables. The server uses the service-role key, which bypasses RLS.
 - `sourceUrls` accepts only public http(s) addresses. Redirects, timeouts and size are checked on direct fetches. A public domain that secretly points to a private address is not caught.
-- Admin routes need both the app password and `SEED_ADMIN_TOKEN`.
+- Admin routes always need `SEED_ADMIN_TOKEN` (and the app password too, if one is set).
 - No secrets are stored in the repository.
 
 ## Known limitations
