@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Content Intelligence Agent - 38 second motion piece</title>
+<style>
+  @font-face { font-family: "Fraunces"; src: url(fonts/fraunces.woff2) format("woff2"); font-weight: 100 900; }
+  @font-face { font-family: "Inter"; src: url(fonts/inter.woff2) format("woff2"); font-weight: 100 900; }
+  :root { --bg:#100f0d; --ink:#f4efe6; --muted:#a39a8a; --accent:#ee6a3c; --green:#5ccf9a; --red:#ff6a5c; --card:#1c1a17; --line:#33302a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+  .display { font-family: Fraunces, serif; letter-spacing: -0.025em; }
+
+  #grid { position: absolute; inset: -240px; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 120px 120px; opacity: .45; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(120px); }
+  #b1 { width: 760px; height: 760px; left: -220px; top: -260px; background: rgba(238,106,60,.30); }
+  #b2 { width: 700px; height: 700px; right: -200px; bottom: -280px; background: rgba(92,207,154,.20); }
+
+  .sc { position: absolute; inset: 0; visibility: hidden; transform-origin: 50% 50%; }
+  .big { font-family: Fraunces, serif; font-weight: 500; letter-spacing: -0.03em; line-height: 1.04; }
+  .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-right: .22em; }
+  .wi { display: inline-block; will-change: transform; }
+  .eyebrow { font-size: 24px; letter-spacing: .24em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .title { position: absolute; left: 140px; top: 96px; font-size: 76px; }
+
+  /* A */
+  #A .l { position: absolute; left: 140px; width: 1640px; }
+  #a1 { top: 250px; font-size: 118px; color: var(--ink); }
+  #a2 { top: 590px; font-size: 168px; color: var(--accent); }
+  #a2 .hl { position: absolute; left: -24px; right: 14%; bottom: 8px; height: 26px; background: rgba(238,106,60,.28); transform-origin: left; z-index: -1; }
+
+  /* B */
+  #B .eyebrow { position: absolute; left: 140px; top: 130px; }
+  .row { position: absolute; left: 140px; width: 1640px; height: 170px; perspective: 1200px; }
+  .face { position: absolute; inset: 0; display: flex; align-items: center; gap: 40px; font-family: Fraunces, serif; font-size: 100px; font-weight: 500; letter-spacing: -.02em; backface-visibility: hidden; }
+  .ico { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font-family: Inter; font-size: 56px; font-weight: 700; flex: none; }
+  .bad .ico { background: rgba(255,106,92,.18); color: var(--red); }
+  .good { color: var(--green); }
+  .good .ico { background: rgba(92,207,154,.18); color: var(--green); }
+  #b-tag { position: absolute; left: 140px; top: 860px; font-size: 84px; color: var(--ink); }
+  #b-tag b { color: var(--green); font-weight: 500; }
+
+  /* C */
+  svg#pipe { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+  #pipe path.base { fill: none; stroke: var(--line); stroke-width: 6; stroke-linecap: round; }
+  #pipe path.draw { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; }
+  #pipe path.fb { fill: none; stroke: var(--green); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 2 16; }
+  .node { position: absolute; width: 330px; margin-left: -165px; text-align: center; }
+  .node .c { width: 92px; height: 92px; margin: 0 auto; border-radius: 50%; background: var(--card); border: 4px solid var(--accent); display: grid; place-items: center; font-family: Fraunces, serif; font-size: 44px; font-weight: 600; box-shadow: 0 0 0 0 rgba(238,106,60,.5); }
+  .node.you .c { border-color: var(--green); color: var(--green); }
+  .node h3 { font-family: Fraunces, serif; font-size: 40px; font-weight: 600; margin-top: 16px; }
+  .node p { font-size: 24px; color: var(--muted); margin-top: 4px; }
+  .node .lab { height: 104px; display: flex; flex-direction: column; justify-content: flex-end; }
+  .node.below h3 { margin-top: 16px; }
+  .node.above h3 { margin: 0 0 0 0; }
+  .node.above .c { margin-top: 14px; }
+  #pulse { position: absolute; left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 10px rgba(238,106,60,.35), 0 0 60px 20px rgba(238,106,60,.65); }
+  #fbLabel { position: absolute; left: 150px; top: 975px; font-size: 38px; color: var(--green); font-weight: 600; }
+
+  /* D */
+  #draft { position: absolute; left: 140px; top: 270px; width: 900px; height: 560px; background: var(--card); border: 2px solid var(--line); border-radius: 28px; padding: 44px 50px; }
+  #draft .lab { font-size: 22px; letter-spacing: .22em; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+  #draft p { font-family: Fraunces, serif; font-size: 58px; line-height: 1.22; margin-top: 30px; font-weight: 500; }
+  .c1 { opacity: 0; }
+  .hot { display: inline-block; border-radius: 10px; padding: 0 6px; margin: 0 -6px; }
+  #flag { position: absolute; left: 520px; top: 214px; padding: 14px 26px; background: var(--red); color: #1a0907; font-weight: 700; font-size: 30px; border-radius: 999px; transform-origin: 20% 100%; }
+  #flag::after { content: ""; position: absolute; left: 34px; bottom: -14px; border: 14px solid transparent; border-top-color: var(--red); border-bottom: 0; }
+  #chips { position: absolute; left: 1120px; top: 270px; width: 660px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .chip { padding: 24px 24px; border-radius: 18px; font-size: 30px; font-weight: 600; display: flex; gap: 14px; align-items: center; border: 2px solid transparent; }
+  .chip.ok { background: rgba(92,207,154,.14); color: var(--green); border-color: rgba(92,207,154,.35); }
+  .chip.no { background: rgba(255,106,92,.16); color: var(--red); border-color: rgba(255,106,92,.5); }
+  #score { position: absolute; left: 1120px; top: 750px; font-size: 110px; font-family: Fraunces, serif; font-weight: 500; }
+  #score small { font-family: Inter; font-size: 30px; color: var(--muted); margin-left: 16px; }
+  #dnote { position: absolute; left: 140px; top: 900px; font-size: 42px; color: var(--muted); }
+  #dnote b { color: var(--ink); font-weight: 600; }
+
+  /* E */
+  #E .title { top: 88px; }
+  .shotcard { position: absolute; width: 900px; height: 565px; border-radius: 24px; overflow: hidden; border: 2px solid var(--line); background: #fff; box-shadow: 0 50px 120px rgba(0,0,0,.6); transform-style: preserve-3d; }
+  .shotcard img { width: 900px; display: block; }
+  .shotcard .tag { position: absolute; left: 22px; top: 20px; padding: 8px 18px; border-radius: 999px; background: var(--ink); color: #111; font-weight: 700; font-size: 22px; }
+  #persp { position: absolute; inset: 0; perspective: 2200px; }
+  #sample { position: absolute; right: 140px; bottom: 70px; padding: 10px 24px; border: 2px solid var(--line); border-radius: 999px; font-size: 24px; color: var(--muted); background: rgba(16,15,13,.7); }
+
+  /* F */
+  #F .sub { position: absolute; left: 140px; top: 210px; font-size: 40px; color: var(--muted); }
+  #bars { position: absolute; left: 240px; top: 330px; width: 1440px; height: 520px; }
+  .bar { position: absolute; bottom: 70px; width: 200px; border-radius: 16px 16px 0 0; background: #4a4439; transform-origin: bottom; }
+  .bar .v { position: absolute; top: -52px; width: 100%; text-align: center; font-size: 36px; font-weight: 700; }
+  .bar .n { position: absolute; bottom: -56px; width: 100%; text-align: center; font-size: 28px; color: var(--muted); }
+  .bar.top { background: var(--green); }
+  #crown { position: absolute; padding: 12px 28px; border-radius: 999px; background: var(--green); color: #07261a; font-weight: 800; font-size: 28px; }
+  #fnote { position: absolute; left: 140px; top: 905px; font-size: 38px; color: var(--ink); }
+  #fnote em { color: var(--green); font-style: normal; font-weight: 600; }
+  #illus { position: absolute; right: 140px; top: 230px; font-size: 24px; color: var(--muted); border: 2px solid var(--line); border-radius: 999px; padding: 8px 22px; }
+
+  /* G */
+  #G { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  #g1 { font-size: 160px; max-width: 1700px; }
+  #g1 .w:last-child { color: var(--accent); }
+  #pills { display: flex; gap: 20px; margin-top: 56px; flex-wrap: wrap; justify-content: center; max-width: 1500px; }
+  .pill { font-size: 36px; padding: 16px 36px; border-radius: 999px; background: var(--ink); color: #12110f; font-weight: 600; }
+  .pill.g { background: var(--green); }
+  #g3 { font-size: 46px; color: var(--muted); margin-top: 52px; }
+  #g3 b { color: var(--ink); font-weight: 600; }
+
+  #wipe { position: absolute; inset: 0; background: var(--accent); z-index: 50; }
+  #wipe2 { position: absolute; inset: 0; background: var(--ink); z-index: 49; }
+  #bar { position: absolute; left: 0; bottom: 0; height: 8px; width: 1920px; background: var(--accent); transform-origin: left; transform: scaleX(0); z-index: 60; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="grid"></div><div class="blob" id="b1"></div><div class="blob" id="b2"></div>
+
+  <!-- A: the question -->
+  <section class="sc" id="A">
+    <h1 class="big l" id="a1">You can ask Claude to write a LinkedIn post.</h1>
+    <h1 class="big l" id="a2"><span class="hl"></span>So why build this?</h1>
+  </section>
+
+  <!-- B: prompt vs system -->
+  <section class="sc" id="B">
+    <div class="eyebrow">One prompt gives you</div>
+    <div class="row" style="top:210px"><div class="face bad"><span class="ico">&#10005;</span>No real sources</div><div class="face good" style="transform:rotateX(90deg)"><span class="ico">&#10003;</span>Real sources, linked</div></div>
+    <div class="row" style="top:410px"><div class="face bad"><span class="ico">&#10005;</span>No idea what works</div><div class="face good" style="transform:rotateX(90deg)"><span class="ico">&#10003;</span>Learns what works</div></div>
+    <div class="row" style="top:610px"><div class="face bad"><span class="ico">&#10005;</span>Nobody checking</div><div class="face good" style="transform:rotateX(90deg)"><span class="ico">&#10003;</span>Every number checked</div></div>
+    <div class="big" id="b-tag">This is a <b>system</b>, not a prompt.</div>
+  </section>
+
+  <!-- C: pipeline -->
+  <section class="sc" id="C">
+    <div class="eyebrow" style="position:absolute;left:140px;top:84px">How it works</div>
+    <h2 class="big title" style="top:124px;font-size:70px" id="c-title">From real posts to a post you can trust</h2>
+    <svg id="pipe" viewBox="0 0 1920 1080">
+      <path class="base" id="pbase" d="M 190 480 H 1730 Q 1810 480 1810 560 V 700 Q 1810 780 1730 780 H 190"/>
+      <path class="draw" id="pdraw" d="M 190 480 H 1730 Q 1810 480 1810 560 V 700 Q 1810 780 1730 780 H 190"/>
+      <path class="fb" id="pfb" d="M 190 780 Q 90 780 90 700 V 560 Q 90 480 190 480"/>
+    </svg>
+    <div id="nodes"></div>
+    <div id="pulse"></div>
+    <div class="big" id="fbLabel" style="font-family:Inter;line-height:1">Your results steer the next post</div>
+  </section>
+
+  <!-- D: the critic -->
+  <section class="sc" id="D">
+    <div class="eyebrow" style="position:absolute;left:140px;top:84px">Critique</div>
+    <h2 class="big title" style="top:124px">A critic that checks the facts</h2>
+    <div id="draft"><div class="lab">Draft</div><p id="dtext"></p></div>
+    <div id="flag">Not in any source</div>
+    <div id="chips"></div>
+    <div id="score"><span id="scoreN">0</span><small>of 8 checks passed</small></div>
+    <div id="dnote">Every number must trace back to a <b>source</b>.</div>
+  </section>
+
+  <!-- E: the product -->
+  <section class="sc" id="E">
+    <div class="eyebrow" style="position:absolute;left:140px;top:84px">The product</div>
+    <h2 class="big title" id="e-title" style="top:124px">Generate. Critique. Edit. Approve.</h2>
+    <div id="persp">
+      <div class="shotcard" id="s1" style="left:70px;top:330px"><span class="tag">Studio</span><img src="../screenshots/06-studio-generated.png"></div>
+      <div class="shotcard" id="s2" style="left:510px;top:300px"><span class="tag">Drafts</span><img src="../screenshots/02-drafts.png"></div>
+      <div class="shotcard" id="s3" style="left:950px;top:330px"><span class="tag">Analytics</span><img src="../screenshots/08-analytics.png"></div>
+    </div>
+    <div id="sample">Demo mode - sample data</div>
+  </section>
+
+  <!-- F: feedback -->
+  <section class="sc" id="F">
+    <div class="eyebrow" style="position:absolute;left:140px;top:84px">Feedback</div>
+    <h2 class="big title" style="top:124px">It learns from your results</h2>
+    <div id="illus">Illustrative example</div>
+    <div id="bars"></div>
+    <div id="fnote">After <em>3+ posts</em> per pattern, it picks by your engagement.</div>
+  </section>
+
+  <!-- G: close -->
+  <section class="sc" id="G">
+    <h1 class="big" id="g1">Research first. Write second.</h1>
+    <div id="pills"><span class="pill">Next.js</span><span class="pill">TypeScript</span><span class="pill">Supabase</span><span class="pill">Trigger.dev</span><span class="pill">Zod</span><span class="pill g">96 tests</span></div>
+    <div id="g3">A person approves <b>every</b> post.</div>
+  </section>
+
+  <div id="wipe2"></div><div id="wipe"></div><div id="bar"></div>
+</div>
+
+<script src="lib/gsap.min.js"></script>
+<script>
+(function () {
+  const TOTAL = 38.6;
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+
+  function split(el) {
+    const words = el.textContent.trim().split(/\s+/); const hl = $(".hl", el); el.textContent = ""; if (hl) el.appendChild(hl);
+    words.forEach((w) => { const o = document.createElement("span"); o.className = "w"; const i = document.createElement("span"); i.className = "wi"; i.textContent = w; o.appendChild(i); el.appendChild(o); });
+    return $$(".wi", el);
+  }
+  const rise = (words, t, stag = 0.07) => tl.from(words, { yPercent: 115, rotate: 5, duration: 0.75, ease: "power4.out", stagger: stag }, t);
+
+  // scene schedule [id, start, end]
+  const S = [["A", 0, 3.5], ["B", 3.5, 8.2], ["C", 8.2, 17.2], ["D", 17.2, 24.2], ["E", 24.2, 30.6], ["F", 30.6, 35.2], ["G", 35.2, TOTAL]];
+  S.forEach(([id, a, b]) => { tl.set("#" + id, { visibility: "visible" }, a); if (b < TOTAL) tl.set("#" + id, { visibility: "hidden" }, b); });
+  // wipes at each cut
+  gsap.set(["#wipe", "#wipe2"], { x: 0, xPercent: -101 });
+  S.slice(1).forEach(([, a]) => {
+    tl.fromTo("#wipe2", { xPercent: -101 }, { xPercent: 0, duration: 0.2, ease: "power3.in" }, a - 0.3)
+      .fromTo("#wipe", { xPercent: -101 }, { xPercent: 0, duration: 0.22, ease: "power3.in" }, a - 0.24)
+      .to("#wipe2", { xPercent: 101, duration: 0.3, ease: "power3.out" }, a + 0.02)
+      .to("#wipe", { xPercent: 101, duration: 0.34, ease: "power3.out" }, a + 0.06);
+  });
+  // ambient
+  tl.to("#grid", { x: 240, y: 120, duration: TOTAL, ease: "none" }, 0).to("#b1", { x: 200, y: 140, duration: TOTAL, ease: "sine.inOut" }, 0).to("#b2", { x: -220, y: -120, duration: TOTAL, ease: "sine.inOut" }, 0);
+  tl.to("#bar", { scaleX: 1, duration: TOTAL, ease: "none" }, 0);
+
+  /* ---------------- A ---------------- */
+  const a1 = split($("#a1")), a2 = split($("#a2"));
+  rise(a1, 0.15, 0.09);
+  tl.to("#a1", { opacity: 0.28, scale: 0.94, transformOrigin: "left center", duration: 0.5, ease: "power2.inOut" }, 1.55);
+  tl.from(a2, { scale: 1.6, autoAlpha: 0, yPercent: 40, duration: 0.55, ease: "expo.out", stagger: 0.12 }, 1.75);
+  tl.from("#a2 .hl", { scaleX: 0, duration: 0.6, ease: "power4.out" }, 2.2);
+  tl.fromTo("#A", { scale: 1 }, { scale: 1.06, duration: 3.5, ease: "none" }, 0);
+
+  /* ---------------- B ---------------- */
+  const B0 = 3.5;
+  tl.from("#B .eyebrow", { x: -60, autoAlpha: 0, duration: 0.5 }, B0 + 0.1);
+  $$("#B .row").forEach((row, i) => {
+    const bad = $(".bad", row), good = $(".good", row), t = B0 + 0.35 + i * 0.28;
+    tl.from(bad, { x: -240, autoAlpha: 0, duration: 0.6, ease: "expo.out" }, t);
+    tl.fromTo(bad, { rotateX: 0 }, { rotateX: -90, autoAlpha: 0, duration: 0.35, ease: "power2.in" }, B0 + 2.0 + i * 0.22);
+    tl.fromTo(good, { rotateX: 90, autoAlpha: 0 }, { rotateX: 0, autoAlpha: 1, duration: 0.45, ease: "back.out(1.6)" }, B0 + 2.3 + i * 0.22);
+  });
+  const btag = split($("#b-tag"));
+  rise(btag, B0 + 3.2, 0.08);
+  tl.fromTo("#B", { scale: 1.04 }, { scale: 1, duration: 4.7, ease: "none" }, B0);
+
+  /* ---------------- C ---------------- */
+  const C0 = 8.2, PULSE = 6.4;
+  const cw = split($("#c-title")); tl.from("#C .eyebrow", { autoAlpha: 0, x: -40, duration: 0.4 }, C0 + 0.05); rise(cw, C0 + 0.15, 0.05);
+  const pbase = $("#pbase"), pdraw = $("#pdraw"), pfb = $("#pfb"), L = pbase.getTotalLength(), LF = pfb.getTotalLength();
+  pdraw.style.strokeDasharray = L; pdraw.style.strokeDashoffset = L; pfb.style.strokeDashoffset = 0;
+  const defs = [["1", "Creator posts", "real, linked back", 330, 480], ["2", "Patterns", "what works", 770, 480], ["3", "Voice", "how it sounds", 1210, 480], ["4", "Research", "web + HN, real links", 1650, 480],
+                ["5", "Generate", "plain-language rules", 1650, 780], ["6", "Critique", "facts checked", 1210, 780], ["7", "You approve", "edit, accept, reject", 770, 780], ["8", "Analytics", "results you type in", 330, 780]];
+  const nodesEl = $("#nodes");
+  const dist = (p, x, y) => (p.x - x) ** 2 + (p.y - y) ** 2;
+  const nodeEls = defs.map(([n, h, p, x, y]) => {
+    const above = y < 600; const d = document.createElement("div");
+    d.className = "node " + (above ? "above" : "below") + (n === "7" ? " you" : "");
+    d.style.left = x + "px";
+    d.innerHTML = above ? `<div class="lab"><h3>${h}</h3><p>${p}</p></div><div class="c">${n}</div>` : `<div class="c">${n}</div><div class="lab" style="height:auto"><h3>${h}</h3><p>${p}</p></div>`;
+    d.style.top = (above ? y - 46 - 104 - 14 : y - 46) + "px";
+    nodesEl.appendChild(d);
+    let best = 0, bd = 1e12; for (let s = 0; s <= L; s += 4) { const dd = dist(pbase.getPointAtLength(s), x, y); if (dd < bd) { bd = dd; best = s; } }
+    return { d, s: best };
+  });
+  const prog = { p: 0 };
+  tl.to(prog, { p: 1, duration: PULSE, ease: "none", onUpdate() {
+    pdraw.style.strokeDashoffset = L * (1 - prog.p);
+    const pt = pbase.getPointAtLength(L * prog.p); gsap.set("#pulse", { x: pt.x, y: pt.y });
+  } }, C0 + 0.9);
+  tl.from("#pulse", { scale: 0, duration: 0.3 }, C0 + 0.8);
+  nodeEls.forEach((o) => {
+    const t = C0 + 0.9 + (o.s / L) * PULSE - 0.1;
+    tl.from(o.d, { autoAlpha: 0, y: 40, duration: 0.5, ease: "back.out(2)" }, t);
+    tl.from($(".c", o.d), { scale: 0.2, duration: 0.55, ease: "back.out(3)" }, t);
+    tl.fromTo($(".c", o.d), { boxShadow: "0 0 0 0 rgba(238,106,60,.7)" }, { boxShadow: "0 0 0 28px rgba(238,106,60,0)", duration: 0.7, ease: "power2.out" }, t + 0.1);
+  });
+  const loop = { p: 0 };
+  tl.from("#pfb", { autoAlpha: 0, duration: 0.3 }, C0 + 7.25);
+  tl.fromTo(pfb, { strokeDashoffset: 0 }, { strokeDashoffset: -260, duration: 1.6, ease: "none" }, C0 + 7.3);
+  tl.to("#pulse", { backgroundColor: "#5ccf9a", boxShadow: "0 0 0 10px rgba(92,207,154,.35), 0 0 60px 20px rgba(92,207,154,.65)", duration: 0.2 }, C0 + 7.3);
+  tl.to(loop, { p: 1, duration: 1.3, ease: "power1.inOut", onUpdate() { const q = pfb.getPointAtLength(LF * loop.p); gsap.set("#pulse", { x: q.x, y: q.y }); } }, C0 + 7.35);
+  tl.from("#fbLabel", { autoAlpha: 0, y: 30, duration: 0.6 }, C0 + 7.5);
+  tl.to("#pulse", { opacity: 0, scale: 0.2, duration: 0.3 }, C0 + 8.65);
+  tl.fromTo("#C", { scale: 1.03 }, { scale: 1, duration: 9, ease: "none" }, C0);
+
+  /* ---------------- D ---------------- */
+  const D0 = 17.2;
+  tl.from("#D .eyebrow", { autoAlpha: 0, x: -40, duration: 0.4 }, D0 + 0.05);
+  rise(split($("#D .title")), D0 + 0.15, 0.06);
+  tl.from("#draft", { y: 80, autoAlpha: 0, duration: 0.6, ease: "expo.out" }, D0 + 0.45);
+  // build per-character spans for deterministic typing
+  const parts = [["Replies jump ", ""], ["47%", "hot"], [" when you follow up within the hour.", ""]];
+  const dtext = $("#dtext"); const chars = []; let hot = null;
+  parts.forEach(([txt, cls]) => { const host = cls ? Object.assign(document.createElement("span"), { className: cls }) : dtext; if (cls) { dtext.appendChild(host); hot = host; }
+    [...txt].forEach((ch) => { const s = document.createElement("span"); s.className = "c1"; s.textContent = ch; host.appendChild(s); chars.push(s); }); });
+  chars.forEach((s, i) => tl.set(s, { opacity: 1 }, D0 + 1.0 + i * 0.034));
+  const typedEnd = D0 + 1.0 + chars.length * 0.034;
+  tl.to(hot, { backgroundColor: "rgba(255,106,92,.30)", color: "#ff8a7e", duration: 0.25 }, typedEnd + 0.15);
+  tl.fromTo(hot, { scale: 1 }, { scale: 1.18, duration: 0.2, yoyo: true, repeat: 1, ease: "power2.inOut", transformOrigin: "50% 60%" }, typedEnd + 0.15);
+  tl.from("#flag", { scale: 0, autoAlpha: 0, rotate: -8, duration: 0.45, ease: "back.out(3)" }, typedEnd + 0.35);
+  const chipDefs = [["Relevance", 1], ["Specificity", 1], ["Clarity", 1], ["Evidence", 0], ["Voice match", 1], ["Originality", 1], ["Structure", 1], ["No unsupported claims", 0]];
+  const chipsEl = $("#chips");
+  const chipEls = chipDefs.map(([n, ok]) => { const c = document.createElement("div"); c.className = "chip " + (ok ? "ok" : "no"); c.innerHTML = `<span>${ok ? "&#10003;" : "&#10005;"}</span>${n}`; chipsEl.appendChild(c); return c; });
+  const chipStart = D0 + 2.2;
+  tl.from(chipEls, { scale: 0.4, autoAlpha: 0, y: 30, duration: 0.45, ease: "back.out(2.5)", stagger: 0.15 }, chipStart);
+  const sc = { n: 0 }; const scoreEl = $("#scoreN");
+  tl.from("#score", { autoAlpha: 0, y: 40, duration: 0.5 }, chipStart + 1.4);
+  tl.to(sc, { n: 6, duration: 0.9, ease: "none", onUpdate() { scoreEl.textContent = Math.round(sc.n); } }, chipStart + 1.5);
+  tl.from("#dnote", { autoAlpha: 0, y: 30, duration: 0.6 }, chipStart + 2.4);
+  tl.fromTo("#D", { scale: 1.03 }, { scale: 1, duration: 7, ease: "none" }, D0);
+
+  /* ---------------- E ---------------- */
+  const E0 = 24.2;
+  tl.from("#E .eyebrow", { autoAlpha: 0, x: -40, duration: 0.4 }, E0 + 0.05);
+  const ew = split($("#e-title")); rise(ew, E0 + 0.15, 0.2);
+  gsap.set("#s1", { rotateY: 14 }); gsap.set("#s3", { rotateY: -14 });
+  [["#s1", 14, 0.5, -320, -300], ["#s2", 0, 1.15, 520, 0], ["#s3", -14, 1.8, 320, 300]].forEach(([sel, ry, t, fromY, fromX]) => {
+    tl.from(sel, { y: fromY, x: fromX, rotateY: ry * 3, autoAlpha: 0, scale: 0.7, duration: 0.95, ease: "back.out(1.4)" }, E0 + t);
+  });
+  tl.to("#s1", { rotateY: 8, duration: 1.0, ease: "power2.inOut" }, E0 + 2.9).to("#s3", { rotateY: -8, duration: 1.0, ease: "power2.inOut" }, E0 + 2.9);
+  tl.to("#s2", { y: -26, scale: 1.05, duration: 1.0, ease: "power2.inOut" }, E0 + 2.9);
+  tl.to("#persp", { scale: 1.1, transformOrigin: "50% 60%", duration: 4.4, ease: "power1.inOut" }, E0 + 1.8);
+  tl.from("#sample", { autoAlpha: 0, y: 20, duration: 0.5 }, E0 + 2.2);
+
+  /* ---------------- F ---------------- */
+  const F0 = 30.6;
+  tl.from("#F .eyebrow", { autoAlpha: 0, x: -40, duration: 0.4 }, F0 + 0.05);
+  rise(split($("#F .title")), F0 + 0.15, 0.06);
+  tl.from("#illus", { autoAlpha: 0, duration: 0.4 }, F0 + 0.6);
+  const vals = [["Pattern A", 3.1], ["Pattern B", 5.4], ["Pattern C", 2.2], ["Pattern D", 4.6], ["Pattern E", 1.8]];
+  const barsEl = $("#bars"), slot = 270, maxH = 330, baseX = 70;
+  const barEls = vals.map(([n, v], i) => { const b = document.createElement("div"); b.className = "bar"; b.style.left = (baseX + i * slot) + "px"; b.style.height = (v / 5.4) * maxH + "px";
+    b.innerHTML = `<div class="v">${v.toFixed(1)}%</div><div class="n">${n}</div>`; barsEl.appendChild(b); return b; });
+  tl.from(barEls, { scaleY: 0, duration: 0.8, ease: "power4.out", stagger: 0.12 }, F0 + 0.8);
+  tl.from(barEls.map((b) => $(".v", b)), { autoAlpha: 0, duration: 0.3, stagger: 0.12 }, F0 + 1.3);
+  // reorder: descending by value
+  const order = vals.map((v, i) => [v[1], i]).sort((a, b) => b[0] - a[0]).map((x) => x[1]);
+  order.forEach((idx, rank) => tl.to(barEls[idx], { x: (rank - idx) * slot, duration: 0.8, ease: "power3.inOut" }, F0 + 2.3));
+  tl.call(() => {}, null, F0 + 3.1);
+  tl.to(barEls[1], { backgroundColor: "#5ccf9a", duration: 0.4 }, F0 + 3.0);
+  const crown = document.createElement("div"); crown.id = "crown"; crown.textContent = "Used for the next post"; barsEl.appendChild(crown);
+  gsap.set(crown, { left: baseX - 65, top: 0 });
+  tl.from(crown, { scale: 0, autoAlpha: 0, duration: 0.5, ease: "back.out(3)" }, F0 + 3.2);
+  tl.from("#fnote", { autoAlpha: 0, y: 30, duration: 0.6 }, F0 + 2.0);
+  tl.fromTo("#F", { scale: 1.03 }, { scale: 1, duration: 4.6, ease: "none" }, F0);
+
+  /* ---------------- G ---------------- */
+  const G0 = 35.2;
+  const gw = split($("#g1")); tl.from(gw, { yPercent: 120, rotate: 6, scale: 1.2, duration: 0.8, ease: "expo.out", stagger: 0.14 }, G0 + 0.2);
+  tl.from(".pill", { scale: 0, autoAlpha: 0, y: 40, duration: 0.5, ease: "back.out(3)", stagger: 0.1 }, G0 + 1.2);
+  tl.from("#g3", { autoAlpha: 0, y: 30, duration: 0.6 }, G0 + 1.9);
+  tl.to("#G", { autoAlpha: 0, duration: 0.35 }, TOTAL - 0.35);
+  tl.fromTo("#G", { scale: 1 }, { scale: 1.04, duration: 3.4, ease: "none" }, G0);
+
+  tl.set({}, {}, TOTAL);
+  window.__total = TOTAL;
+  window.__seek = (t) => { tl.time(Math.min(t, TOTAL - 0.001), false); };
+  const placeFlag = () => { const d = $("#draft"); gsap.set("#flag", { left: 140 + hot.offsetLeft - 10, top: 270 + hot.offsetTop - 74 }); void d; };
+  placeFlag();
+  document.fonts.ready.then(() => { placeFlag(); window.__ready = true; });
+})();
+</script>
+</body>
+</html>

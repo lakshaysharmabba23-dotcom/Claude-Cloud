@@ -10,3 +10,4 @@ dist
 coverage
 .trigger
 docs/video/.rec/
+docs/video/.frames/
