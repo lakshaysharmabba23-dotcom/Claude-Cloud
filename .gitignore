@@ -9,6 +9,3 @@ dist
 .DS_Store
 coverage
 .trigger
-docs/video/.rec/
-docs/video/.frames/
-docs/video/.frames-*/

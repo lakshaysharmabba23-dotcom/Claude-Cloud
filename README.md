@@ -6,8 +6,6 @@ It studies what works in real creator posts, writes in a plain voice, checks its
 
 ![Post Studio](docs/screenshots/06-studio-generated.png)
 
-**Motion graphic (39 sec, silent, 4:5 for phone feeds):** [`docs/video/content-intelligence-agent.mp4`](docs/video/content-intelligence-agent.mp4). Rebuild it with `docs/video/render-options.js 3`. Post copy: [`docs/linkedin-post.md`](docs/linkedin-post.md).
-
 > **Screenshots use demo mode.** Every record you see in them is fictional sample data and is labelled `[FICTIONAL]` or shown under a "Demo mode" banner. Demo mode makes no paid API calls and runs fully offline.
 
 ## What it does
