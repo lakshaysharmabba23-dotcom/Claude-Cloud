@@ -396,8 +396,8 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
             <h2 className="mb-3 font-medium">Voice examples used</h2>
             <ul className="space-y-2 text-sm text-ink-400">
               {result.relevantVoiceExamples.map((ex, i) => (
-                <li key={i} className="line-clamp-2 break-words rounded-lg bg-ink-800 px-3 py-2">
-                  {ex}
+                <li key={i} className="break-words rounded-lg bg-ink-800 px-3 py-2">
+                  <p className="line-clamp-3">{ex}</p>
                 </li>
               ))}
               {result.relevantVoiceExamples.length === 0 && <p>No voice examples were retrieved.</p>}

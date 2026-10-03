@@ -39,8 +39,25 @@ export const COPYWRITING_PROMPT = [
   "7. Never use these words or styles: leverage, unlock, delve, game-changer, revolutionize, seamless, cutting-edge, robust, ecosystem, landscape, journey, synergy, empower, elevate, streamline, paradigm, holistic, 'it's not just X, it's Y', 'Here's the thing', 'Let that sink in', rhetorical triplets for rhythm, em dashes, emojis, hashtags.",
   "8. No jargon unless the audience uses that exact word daily. If you must use a term, make the meaning obvious from the sentence.",
   "9. Do not summarize at the end and do not repeat the hook. End with one specific, easy question a real reader could answer in a sentence.",
-  "10. Before answering, reread the post and cut every word that does not earn its place. If a line sounds like a LinkedIn guru or a press release, rewrite it plainly."
+  "10. Do NOT put source markers like [R1], [R2, R3], [V1] or [M1] inside the post text. The post must read as finished copy a person could publish as-is. Put the markers only in the evidence_used list. If you mention a fact, work the source into the sentence in plain words only when it helps (for example 'a Hacker News thread this week said...').",
+  "11. Before answering, reread the post and cut every word that does not earn its place. If a line sounds like a LinkedIn guru or a press release, rewrite it plainly."
 ].join("\n");
+
+const MARKER_GROUP = /\s*\[\s*(?:[RVM]\d+)(?:\s*[,;]\s*[RVM]\d+)*\s*\]/g;
+
+/** Removes internal source markers ([R1], [R2, R3], [V1], [M1]) from post copy and returns them separately. */
+export function stripSourceMarkers(text: string): { content: string; markers: string[] } {
+  const markers: string[] = [];
+  const content = text
+    .replace(MARKER_GROUP, (m) => {
+      markers.push(...(m.match(/[RVM]\d+/g) ?? []));
+      return "";
+    })
+    .replace(/[ \t]+([.,;:!?])/g, "$1")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+  return { content, markers };
+}
 
 export class PostGenerator {
   async generate(context: GenerationContext): Promise<GeneratedPost> {
@@ -78,7 +95,7 @@ export class PostGenerator {
       "Only reference facts/examples present in the research block - never invent a statistic, study, or example.",
       "Match the target voice profile as closely as possible.",
       "Model the structure and craft of the high-engagement creator posts provided: a hook that lands in the first line, line breaks that fit the idea (a one-liner where one line is enough, a few lines where it needs explaining), concrete numbers or specifics, plain words, and a closing line that invites a reply. Learn their rhythm and structure - never reuse their sentences or facts.",
-      "If you use a fact from the research, cite it inline as e.g. [R1] so evidence_used can reference it."
+      "List the research items you drew on (e.g. ['R1']) in evidence_used only - never inside the post content."
     ].join(" ");
 
     const prompt = [
@@ -119,8 +136,15 @@ export class PostGenerator {
       maxTokens: lengthSpec.maxTokens
     });
 
+    // Safety net: models sometimes leave internal markers like [R2, R3] in the
+    // copy anyway. Pull them out into evidence_used and clean the text.
+    const { content, markers } = stripSourceMarkers(result.content);
+    const evidence_used = Array.from(new Set([...(result.evidence_used ?? []), ...markers]));
+
     return {
       ...result,
+      content,
+      evidence_used,
       generation_metadata: {
         model: ai.model,
         provider: ai.name,

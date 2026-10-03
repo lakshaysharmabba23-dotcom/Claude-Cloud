@@ -82,3 +82,15 @@ describe("critiquePost (deterministic + mock LLM merge)", () => {
     expect(result.checks.cta_alignment).toBe(false);
   });
 });
+
+import { stripSourceMarkers } from "@/lib/generation/generator";
+describe("stripSourceMarkers", () => {
+  it("removes [R2, R3]-style markers and reports them", () => {
+    const r = stripSourceMarkers("Most teams stall at 50 leads [R2, R3]. Fix it first [R1] , then scale.");
+    expect(r.content).toBe("Most teams stall at 50 leads. Fix it first, then scale.");
+    expect(r.markers.sort()).toEqual(["R1", "R2", "R3"]);
+  });
+  it("leaves normal brackets alone", () => {
+    expect(stripSourceMarkers("Use [brackets] sometimes.").content).toBe("Use [brackets] sometimes.");
+  });
+});
