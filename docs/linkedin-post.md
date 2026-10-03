@@ -1,6 +1,6 @@
 # LinkedIn post copy
 
-Video: `docs/video/content-intelligence-agent-short.mp4` (38 sec, silent). Post it as a native video upload.
+Video: pick one of `docs/video/option-1-daybreak.mp4`, `option-2-aurora.mp4` or `option-3-paper.mp4` (38 sec, silent, 4:5 vertical). Post it as a native video upload.
 Fill in the two `[...]` spots before posting. Check that every number matches what you can stand behind.
 
 ---
