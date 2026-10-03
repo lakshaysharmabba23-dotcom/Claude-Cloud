@@ -1,5 +1,5 @@
 import { researchTopic } from "@/lib/research";
-import { retrieveSimilar } from "@/lib/embeddings/retrieval";
+import { rankPatternsForSelection } from "./select-pattern";
 import { buildGenerationContext } from "./context";
 import { PostGenerator } from "./generator";
 import { critiquePost } from "@/lib/critic/critic";
@@ -81,31 +81,19 @@ export async function runStudioPipeline(request: StudioRequest): Promise<StudioR
     : [];
 
   if (selectedPatterns.length === 0) {
-    // Patterns in the demo store don't carry a pre-computed embedding, so
-    // fall back to a plain, explainable filter - highest observed
-    // usage_count - rather than reaching for vector search where a normal
-    // SQL-style filter is sufficient (see docs/research-system.md).
-    selectedPatterns = [...allPatterns].sort((a, b) => b.usage_count - a.usage_count).slice(0, 1);
+    // Automatic choice: patterns with enough of the user's own recorded
+    // results are ranked by engagement; otherwise most-used by creators first.
+    selectedPatterns = rankPatternsForSelection(allPatterns).slice(0, 1);
   }
 
   if (selectedPatterns.length === 0) {
     throw new Error("No content patterns are available. Build the pattern library first.");
   }
 
-  // 3. Retrieve relevant voice examples via semantic similarity to the topic.
+  // 3. Voice examples: the most recent few. (Embedding similarity was removed:
+  // examples were never embedded, so it always returned nothing and just cost a call.)
   const voiceExamples = await listVoiceExamples(voiceProfile.id ?? "");
-  const rankedVoiceExamples = await retrieveSimilar(
-    `${request.topic} ${request.audience}`,
-    voiceExamples.map((e) => ({ id: e.id, embedding: null as number[] | null, content: e.content })),
-    3
-  );
-  // In DEMO_MODE, examples aren't pre-embedded in the in-memory store, so
-  // rankedVoiceExamples may be empty; fall back to the most recent examples
-  // (a plain filter) rather than leaving the generator with nothing.
-  const relevantVoiceExamples =
-    rankedVoiceExamples.length > 0
-      ? rankedVoiceExamples.map((r) => r.item.content)
-      : voiceExamples.slice(0, 3).map((e) => e.content);
+  const relevantVoiceExamples = voiceExamples.slice(0, 3).map((e) => e.content);
 
   // 3b. Model posts: the real top-engagement posts from the tracked creators.
   // The generator studies their hooks, rhythm and structure (never copies).
