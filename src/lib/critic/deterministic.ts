@@ -81,6 +81,34 @@ const CTA_MARKERS = [
   "reach out"
 ];
 
+/**
+ * Numbers in the draft that appear in none of the grounding texts (research,
+ * the user's own examples, the request itself). Catches invented statistics.
+ * Small whole numbers (list markers, "3 steps") and plain years are ignored
+ * because they are structure, not claims.
+ */
+export function findUnsupportedNumbers(draft: string, groundingTexts: string[]): string[] {
+  const NUMBER = /(\$)?(\d[\d,]*(?:\.\d+)?)\s?(%|x\b|k\b|m\b|b\b)?/gi;
+  const normalize = (raw: string) => raw.replace(/,/g, "").replace(/\.0+$/, "");
+
+  const known = new Set<string>();
+  for (const text of groundingTexts) {
+    for (const m of text.matchAll(NUMBER)) known.add(normalize(m[2]!));
+  }
+
+  const unsupported = new Set<string>();
+  for (const m of draft.matchAll(NUMBER)) {
+    const [whole, dollar, digits, suffix] = m;
+    const value = normalize(digits!);
+    const numeric = Number(value);
+    const isYear = !suffix && !dollar && Number.isInteger(numeric) && numeric >= 1900 && numeric <= 2100;
+    const meaningful = Boolean(suffix) || Boolean(dollar) || value.includes(".") || numeric >= 10;
+    if (!meaningful || isYear) continue;
+    if (!known.has(value)) unsupported.add(whole!.trim());
+  }
+  return [...unsupported];
+}
+
 export interface DeterministicCriticResult {
   checks: {
     no_generic_language: boolean;
@@ -132,6 +160,8 @@ function longestSharedNGram(a: string, b: string): number {
 export function runDeterministicChecks(params: {
   draftContent: string;
   sourceTexts: string[];
+  /** When given, every meaningful number in the draft must appear in one of these texts. */
+  groundingTexts?: string[];
 }): DeterministicCriticResult {
   const issues: string[] = [];
   const strengths: string[] = [];
@@ -146,12 +176,22 @@ export function runDeterministicChecks(params: {
 
   const absoluteHits = containsAny(params.draftContent, ABSOLUTE_CLAIM_MARKERS);
   const hasEvidence = containsAny(params.draftContent, EVIDENCE_MARKERS).length > 0;
-  const noUnsupportedClaims = absoluteHits.length === 0 || hasEvidence;
-  if (!noUnsupportedClaims) {
+  const absoluteClaimsOk = absoluteHits.length === 0 || hasEvidence;
+  if (!absoluteClaimsOk) {
     issues.push(
       `Contains absolute claim(s) ("${absoluteHits.join('", "')}") without a visible supporting example, data point, or citation.`
     );
   }
+
+  const unsupportedNumbers = params.groundingTexts
+    ? findUnsupportedNumbers(params.draftContent, params.groundingTexts)
+    : [];
+  if (unsupportedNumbers.length > 0) {
+    issues.push(
+      `Number(s) not found in the research or your own examples: ${unsupportedNumbers.join(", ")}. Verify them or remove them - they may be invented.`
+    );
+  }
+  const noUnsupportedClaims = absoluteClaimsOk && unsupportedNumbers.length === 0;
 
   let maxSharedRun = 0;
   for (const source of params.sourceTexts) {

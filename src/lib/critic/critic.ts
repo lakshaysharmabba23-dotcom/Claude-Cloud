@@ -10,6 +10,10 @@ export interface CritiquePostInput {
   voiceProfileSummary: string;
   selectedPatternName: string;
   sourceTexts: string[];
+  /** Texts the draft is allowed to take numbers/facts from (research, user examples, the request). */
+  groundingTexts?: string[];
+  /** Research items shown to the model critic so it can check claims against them. */
+  researchTexts?: string[];
 }
 
 /**
@@ -26,14 +30,19 @@ export interface CritiquePostInput {
  */
 export async function critiquePost(input: CritiquePostInput): Promise<CriticResult> {
   const [deterministic, llmResult] = await Promise.all([
-    runDeterministicChecks({ draftContent: input.draftContent, sourceTexts: input.sourceTexts }),
+    runDeterministicChecks({
+      draftContent: input.draftContent,
+      sourceTexts: input.sourceTexts,
+      groundingTexts: input.groundingTexts
+    }),
     runLLMCritic({
       draftContent: input.draftContent,
       topic: input.topic,
       audience: input.audience,
       objective: input.objective,
       voiceProfileSummary: input.voiceProfileSummary,
-      selectedPatternName: input.selectedPatternName
+      selectedPatternName: input.selectedPatternName,
+      researchTexts: input.researchTexts
     })
   ]);
 

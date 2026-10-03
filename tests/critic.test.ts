@@ -94,3 +94,26 @@ describe("stripSourceMarkers", () => {
     expect(stripSourceMarkers("Use [brackets] sometimes.").content).toBe("Use [brackets] sometimes.");
   });
 });
+
+import { findUnsupportedNumbers } from "@/lib/critic/deterministic";
+describe("number grounding", () => {
+  it("flags a statistic that appears in no source", () => {
+    const r = runDeterministicChecks({
+      draftContent: "This approach improves reply rates by 47% for most teams.",
+      sourceTexts: [],
+      groundingTexts: ["Teams reported replies improved by 12% in a small test."]
+    });
+    expect(r.checks.no_unsupported_claims).toBe(false);
+    expect(r.issues.some((i) => i.includes("47%"))).toBe(true);
+  });
+  it("accepts a number that is in the research", () => {
+    expect(findUnsupportedNumbers("Replies went up 12% after the change.", ["improved by 12% in a test"])).toEqual([]);
+  });
+  it("matches numbers with thousands separators and ignores list numbers and years", () => {
+    expect(findUnsupportedNumbers("1. First step\n2. Second\nIn 2026 we sent 1,200 emails.", ["we sent 1200 emails"])).toEqual([]);
+  });
+  it("skips the check when no grounding is provided", () => {
+    const r = runDeterministicChecks({ draftContent: "We grew 300% last year.", sourceTexts: [] });
+    expect(r.checks.no_unsupported_claims).toBe(true);
+  });
+});

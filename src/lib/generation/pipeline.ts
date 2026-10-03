@@ -130,7 +130,17 @@ export async function runStudioPipeline(request: StudioRequest): Promise<StudioR
     objective: request.objective,
     voiceProfileSummary: summarizeVoiceProfile(voiceProfile),
     selectedPatternName: selectedPatterns[0]?.name ?? "unspecified",
-    sourceTexts: [...research.map((r) => r.content), ...modelPosts.map((m) => m.content)]
+    sourceTexts: [...research.map((r) => r.content), ...modelPosts.map((m) => m.content)],
+    researchTexts: research.map((r) => r.content),
+    // Numbers are allowed only if they come from the research, the user's own
+    // voice examples, or the request itself (never from the creators' posts).
+    groundingTexts: [
+      ...research.map((r) => r.content),
+      ...voiceExamples.map((e) => e.content),
+      request.topic,
+      request.audience,
+      request.objective
+    ]
   });
 
   return {
