@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/security/rate-limit";
 import { z } from "zod";
 import { runStudioPipeline } from "@/lib/generation/pipeline";
 import { createDraft } from "@/lib/data/repository";
@@ -29,6 +30,8 @@ const requestSchema = z.object({
  * Nothing is published from this route - see /api/drafts/[id]/approve.
  */
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "generate");
+  if (limited) return limited;
   const body = await request.json().catch(() => null);
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {

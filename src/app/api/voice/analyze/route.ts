@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/security/rate-limit";
 import { z } from "zod";
 import { analyzeVoice } from "@/lib/voice/analyze";
 import { getDefaultVoiceProfile, saveVoiceProfile, addVoiceExamples, listVoiceExamples } from "@/lib/data/repository";
@@ -18,6 +19,8 @@ const requestSchema = z.object({
  * in src/lib/voice/analyze.ts is scoped strictly to the samples given here.
  */
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "voice");
+  if (limited) return limited;
   const body = await request.json().catch(() => null);
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/security/rate-limit";
 import { z } from "zod";
 import { tasks } from "@trigger.dev/sdk/v3";
 import type { generatePostTask } from "@/trigger/generatePost";
@@ -24,6 +25,8 @@ const requestSchema = z.object({
  * GET /api/studio/generate-async/[runId] for the result.
  */
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "generate");
+  if (limited) return limited;
   const body = await request.json().catch(() => null);
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {
