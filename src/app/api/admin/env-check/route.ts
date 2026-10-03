@@ -47,7 +47,8 @@ export async function GET(request: Request) {
     "EMBEDDING_PROVIDER",
     "TRIGGER_SECRET_KEY",
     "TRIGGER_PROJECT_ID",
-    "SEED_ADMIN_TOKEN"
+    "SEED_ADMIN_TOKEN",
+    "APP_PASSWORD"
   ] as const;
 
   const report = Object.fromEntries(

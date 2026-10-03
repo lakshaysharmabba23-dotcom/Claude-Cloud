@@ -1,3 +1,4 @@
+import { env } from "@/lib/env";
 import { getServiceSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { memoryStore } from "./memory-store";
 import { aggregatePatternPerformance, type PerformanceObservation } from "@/lib/performance/aggregation";
@@ -26,6 +27,13 @@ import type {
 
 function getSupabaseClientIfConfigured() {
   const client = isSupabaseConfigured() ? getServiceSupabase() : null;
+  if (!client && !env.demoMode) {
+    // Real mode but no usable database: stop here instead of quietly serving
+    // the fictional in-memory demo data as if it were real.
+    throw new Error(
+      "Supabase is not configured (need NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY) and DEMO_MODE is not true. Set the Supabase variables, or set DEMO_MODE=true to use demo data."
+    );
+  }
   return client;
 }
 

@@ -99,12 +99,26 @@ docs/                      Deep-dive docs per layer (linked below)
 - [`docs/generation.md`](docs/generation.md) - generation context, PostGenerator, critic
 - [`docs/feedback-loop.md`](docs/feedback-loop.md) - performance tracking, pattern-performance aggregation, confidence
 
+## What is real and what is manual
+
+- **Real end to end:** Studio (research -> generate -> critique -> human approval -> published record) and manual performance entry.
+- **Curated, not automatic:** the pattern library and voice profile are loaded from hand-analysed data (`src/lib/data/real-gtm-patterns.ts`, seeded through the admin routes). The LLM extraction code in `src/lib/patterns/extract.ts` exists but nothing in the app triggers it yet.
+- **Feedback:** once a pattern has at least 3 recorded posts, automatic pattern choice ranks by your own engagement; before that it uses how often creators used each pattern.
+
+## Security setup (production)
+
+1. Set `APP_PASSWORD` in the hosting environment. The whole app asks for it (browser login box, any username). If it is missing in production the app refuses to serve.
+2. Run `supabase/migrations/0002_security_and_integrity.sql` in the Supabase SQL Editor. It turns on Row Level Security (so the public anon key can read/write nothing), removes duplicate publish/performance rows and prevents new ones.
+3. Set `DEMO_MODE=false` explicitly in production. If it is unset, production already defaults to real mode and errors loudly when Supabase is not configured.
+
 ## Limitations
 
 - **Demo-mode retrieval and generation quality is heuristic, not a real model.** `MockAIProvider` and `MockEmbeddingProvider` are designed to exercise every layer of the pipeline honestly (they reason over the actual input text, they don't hardcode output) - but they are not a substitute for a real LLM's writing or judgment quality. Point the app at a real provider for representative output.
 - **The in-memory demo store resets on process restart.** It exists so the whole app runs with zero external services; for persistence, configure Supabase.
 - **Pattern extraction confidence is self-reported by the model**, not independently validated against a labeled dataset.
-- **The critic's deterministic checks are heuristic** (keyword/n-gram based), not a full plagiarism or fact-checking system.
+- **The critic's deterministic checks are heuristic** (keyword/n-gram based). It does flag numbers in a draft that appear in none of the research or your own examples, but it is not a full fact-checking system.
+- **Rate limiting is per server instance** (in memory), so on serverless hosting it is best-effort, not a hard global cap.
+- **URL safety checks inspect the hostname** and redirects; they cannot stop a public domain whose DNS points at a private address.
 - **No LinkedIn scraping or automated publishing exists anywhere in this codebase**, by design - see the "Security / safety" section of `docs/architecture.md`.
 
 ## Future improvements

@@ -15,7 +15,11 @@ function readBool(value: string | undefined, fallback: boolean): boolean {
 }
 
 export const env = {
-  demoMode: readBool(process.env.DEMO_MODE, true),
+  // When DEMO_MODE is not set at all: demo outside production (handy locally),
+  // but REAL mode in production. Previously an unset/misspelled variable on the
+  // server silently showed fictional data; now it fails loudly instead (see
+  // getSupabaseClientIfConfigured in src/lib/data/repository.ts).
+  demoMode: readBool(process.env.DEMO_MODE, process.env.NODE_ENV !== "production"),
 
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
