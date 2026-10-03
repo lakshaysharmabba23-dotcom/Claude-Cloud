@@ -1,10 +1,11 @@
 // Frame-accurate render of docs/video/motion-options.html (1080x1350, 4:5).
-// Usage: NODE_PATH=$(npm root -g) FFMPEG=/path/to/ffmpeg node docs/video/render-options.js <1|2|3> [outfile]
+// Usage: NODE_PATH=$(npm root -g) FFMPEG=/path/to/ffmpeg node docs/video/render-options.js 3 [outfile]   (3 = final cut; 1 and 2 are alternate styles)
 const { chromium } = require("playwright");
 const { execFileSync } = require("child_process");
 const path = require("path"), fs = require("fs");
 const dir = __dirname, V = process.argv[2] || "1", FPS = 30, WORKERS = +(process.env.WORKERS || 4);
-const names = { 1: "option-1-daybreak", 2: "option-2-aurora", 3: "option-3-paper" };
+// Variant 3 ("Paper": cream and charcoal, serif type, slide transitions) is the chosen final cut.
+const names = { 1: "alt-daybreak", 2: "alt-aurora", 3: "content-intelligence-agent" };
 const out = path.join(dir, process.argv[3] || (names[V] + ".mp4"));
 const frames = path.join(dir, ".frames-" + V);
 (async () => {
