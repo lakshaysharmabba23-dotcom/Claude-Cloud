@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { PatternWithStats } from "@/lib/data/repository";
 import type { CriticResult, GeneratedPost, ResearchDocument } from "@/lib/types/schemas";
@@ -63,6 +64,8 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
   const [content, setContent] = useState("");
   const [draftStatus, setDraftStatus] = useState<string>("critiqued");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [messageOk, setMessageOk] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [actionLoading, setActionLoading] = useState<"save" | "approve" | "reject" | null>(null);
 
   function applyResult(data: StudioResponse) {
@@ -164,14 +167,33 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
     }
   }
 
+  const decided = draftStatus === "approved" || draftStatus === "rejected";
+
+  async function copyPost() {
+    try {
+      await navigator.clipboard.writeText(content);
+    } catch {
+      const area = document.createElement("textarea");
+      area.value = content;
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   async function saveEdit() {
     if (!result || actionLoading) return;
     setActionLoading("save");
     setActionMessage(null);
     try {
       await saveEditRequest();
-      setActionMessage("Edit saved.");
+      setMessageOk(true);
+      setActionMessage("Saved.");
     } catch (err) {
+      setMessageOk(false);
       setActionMessage(`Could not save: ${(err as Error).message}`);
     } finally {
       setActionLoading(null);
@@ -187,14 +209,17 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
       const res = await fetch(`/api/drafts/${result.draft.id}/approve`, { method: "POST" });
       const data = await parseJsonResponse(res);
       if (!res.ok) {
+        setMessageOk(false);
         setActionMessage(`Could not approve: ${data.error}`);
         return;
       }
       setDraftStatus("approved");
+      setMessageOk(true);
       setActionMessage(
         "Approved and recorded as published. Add performance data from LinkedIn analytics on the Analytics page when available."
       );
     } catch (err) {
+      setMessageOk(false);
       setActionMessage(`Could not approve: ${(err as Error).message}`);
     } finally {
       setActionLoading(null);
@@ -209,12 +234,15 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
       const res = await fetch(`/api/drafts/${result.draft.id}/reject`, { method: "POST" });
       if (!res.ok) {
         const data = await parseJsonResponse(res);
+        setMessageOk(false);
         setActionMessage(`Could not reject: ${data.error ?? res.statusText}`);
         return;
       }
       setDraftStatus("rejected");
+      setMessageOk(true);
       setActionMessage("Draft rejected.");
     } catch (err) {
+      setMessageOk(false);
       setActionMessage(`Could not reject: ${(err as Error).message}`);
     } finally {
       setActionLoading(null);
@@ -310,22 +338,26 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
             <textarea
               className="input min-h-[220px] font-normal"
               value={content}
+              readOnly={decided}
               onChange={(e) => setContent(e.target.value)}
             />
             <div className="flex flex-wrap gap-2">
-              <button className="btn-secondary" onClick={saveEdit} disabled={loading || actionLoading !== null}>
+              <button className="btn-secondary" onClick={saveEdit} disabled={loading || actionLoading !== null || decided}>
                 {actionLoading === "save" ? "Saving..." : "Save edit"}
               </button>
               <button className="btn-secondary" onClick={generate} disabled={loading || actionLoading !== null}>
-                {loading ? progress ?? "Regenerating..." : "Regenerate"}
+                {loading ? progress ?? "Regenerating..." : decided ? "Generate another" : "Regenerate"}
               </button>
-              <button className="btn-primary" onClick={approve} disabled={loading || actionLoading !== null}>
+              <button className="btn-secondary" onClick={copyPost} disabled={!content}>
+                {copied ? "Copied" : "Copy post"}
+              </button>
+              <button className="btn-primary" onClick={approve} disabled={loading || actionLoading !== null || decided}>
                 {actionLoading === "approve" ? "Approving..." : "Approve & record as published"}
               </button>
               <button
                 className="btn-ghost text-bad"
                 onClick={reject}
-                disabled={loading || actionLoading !== null}
+                disabled={loading || actionLoading !== null || decided}
               >
                 {actionLoading === "reject" ? "Rejecting..." : "Reject"}
               </button>
@@ -335,7 +367,26 @@ export function StudioClient({ patterns, demoMode }: { patterns: PatternWithStat
                 {demoMode ? "Regenerating..." : "Running as a background job - this can take a minute or two."}
               </p>
             )}
-            {actionMessage && <p className="text-sm text-ink-200">{actionMessage}</p>}
+            {decided && (
+              <p className="text-xs text-ink-400">
+                This draft is {draftStatus} and locked. Use &quot;Generate another&quot; to start a new one.
+              </p>
+            )}
+            {actionMessage && (
+              <p
+                className={`rounded-lg border px-3 py-2 text-sm ${
+                  messageOk ? "border-good/40 bg-good/10 text-good" : "border-bad/40 bg-bad/10 text-bad"
+                }`}
+                role="status"
+              >
+                {actionMessage}{" "}
+                {messageOk && (
+                  <Link href="/drafts" className="underline">
+                    View it in Drafts &rarr;
+                  </Link>
+                )}
+              </p>
+            )}
             <p className="text-xs text-ink-400">
               CTA type: {result.generated.cta_type} - pattern followed: {result.generated.selected_pattern}
             </p>

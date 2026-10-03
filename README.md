@@ -23,10 +23,10 @@ creator posts  ->  pattern library  ->  voice profile
 
 | Step | Screen | What happens |
 |---|---|---|
-| Research | `/research` | The creator posts the library is built from, with author, date and engagement. |
 | Patterns | `/patterns` | A library of reusable hooks, structures, storytelling styles and CTAs, with examples. |
 | Voice | `/voice` | A structured profile of a writing voice (tone, sentence length, formatting habits). |
 | Studio | `/studio` | Pick a topic, audience and length. It researches, writes, and critiques. You edit, then approve or reject. |
+| Drafts | `/drafts` | Every saved post, with status. Copy the text to post it yourself. |
 | Analytics | `/analytics` | You enter real results from LinkedIn. It shows what performs, with sample size and confidence. |
 
 ### How a post is generated
@@ -43,7 +43,7 @@ creator posts  ->  pattern library  ->  voice profile
 - **Real end to end:** the Studio flow and manual performance entry.
 - **Curated, not automatic:** the pattern library and the sample voice profile are loaded from hand-analysed data (`src/lib/data/real-gtm-patterns.ts`). The model-based pattern extraction in `src/lib/patterns/extract.ts` exists but nothing in the app triggers it yet.
 - **Voice sample:** the shipped voice profile comes from one sample post written for this project. The Voice screen labels it as a sample. Add your own writing to replace it.
-- **Creator posts:** public posts from a manual export, shown with attribution and a link. This app does not scrape LinkedIn. They are used here for analysis and as style references, not republished as new posts.
+- **Creator posts:** public posts from a manual export, used for analysis and as style references. This app does not scrape LinkedIn, and it does not display the posts or the authors' names anywhere in the interface. Pattern cards show a short example excerpt without a name.
 - **Metrics:** never fetched or estimated. Every number in Analytics is typed in by a person.
 
 ## Run it
@@ -86,7 +86,7 @@ Next.js 14 (App Router) · TypeScript · Tailwind · Supabase Postgres · Trigge
 
 ```
 src/
-  app/                 pages (dashboard, research, patterns, voice, studio, analytics) + API routes
+  app/                 pages (dashboard, patterns, voice, studio, drafts, analytics) + API routes
   middleware.ts        password gate for pages and API
   lib/
     ai/                provider interface, vendors, fallback chain, structured-output validation
@@ -130,7 +130,7 @@ See [`docs/audit.md`](docs/audit.md) for the full list. The main ones that remai
 
 | | |
 |---|---|
-| ![Dashboard](docs/screenshots/01-dashboard.png) Dashboard | ![Research](docs/screenshots/02-research.png) Research |
+| ![Dashboard](docs/screenshots/01-dashboard.png) Dashboard | ![Drafts](docs/screenshots/02-drafts.png) Drafts |
 | ![Patterns](docs/screenshots/03-patterns.png) Patterns | ![Voice](docs/screenshots/04-voice.png) Voice |
 | ![Studio before](docs/screenshots/05-studio-empty.png) Studio, before generating | ![Approved](docs/screenshots/07-studio-approved.png) After approval |
 | ![Analytics](docs/screenshots/08-analytics.png) Analytics | ![Dark](docs/screenshots/09-dashboard-dark.png) Dark theme |

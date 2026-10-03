@@ -18,6 +18,7 @@ export function VoiceLab({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openExample, setOpenExample] = useState<VoiceExampleRecord | null>(null);
+  const [done, setDone] = useState<string | null>(null);
 
   function addSampleToQueue() {
     if (draftSample.trim().length < 20) {
@@ -30,23 +31,33 @@ export function VoiceLab({
   }
 
   async function analyze() {
-    if (pendingSamples.length === 0) {
-      setError("Add at least one writing sample before analyzing.");
+    // Use whatever is typed in the box too, so "Analyze voice" works without a separate "Add sample" click.
+    const typed = draftSample.trim();
+    if (typed.length > 0 && typed.length < 20) {
+      setError("Each writing sample should be at least 20 characters.");
+      return;
+    }
+    const samples = typed.length >= 20 ? [...pendingSamples, typed] : pendingSamples;
+    if (samples.length === 0) {
+      setError("Paste at least one writing sample (20+ characters) before analyzing.");
       return;
     }
     setLoading(true);
     setError(null);
+    setDone(null);
     try {
       const res = await fetch("/api/voice/analyze", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ samples: pendingSamples.map((content) => ({ content, source: "voice-lab-ui" })) })
+        body: JSON.stringify({ samples: samples.map((content) => ({ content, source: "voice-lab-ui" })) })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error?.formErrors?.join(", ") ?? data.error ?? "Failed to analyze voice.");
       setProfile(data.profile);
       setExamples((prev) => [...data.addedExamples, ...prev]);
       setPendingSamples([]);
+      setDraftSample("");
+      setDone(`Voice profile updated from ${samples.length} new sample${samples.length === 1 ? "" : "s"}.`);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -72,7 +83,16 @@ export function VoiceLab({
             {loading ? "Analyzing..." : "Analyze voice"}
           </button>
         </div>
-        {error && <p className="text-sm text-bad">{error}</p>}
+        {error && (
+          <p className="rounded-lg border border-bad/40 bg-bad/10 px-3 py-2 text-sm text-bad" role="alert">
+            {error}
+          </p>
+        )}
+        {done && (
+          <p className="rounded-lg border border-good/40 bg-good/10 px-3 py-2 text-sm text-good" role="status">
+            {done}
+          </p>
+        )}
 
         {pendingSamples.length > 0 && (
           <ul className="space-y-2 text-sm text-ink-400">
