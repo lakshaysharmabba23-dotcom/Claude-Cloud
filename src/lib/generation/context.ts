@@ -15,6 +15,7 @@ export function buildGenerationContext(params: {
   selectedPatterns: ContentPattern[];
   research: ResearchDocument[];
   relevantVoiceExamples: string[];
+  modelPosts?: GenerationContext["model_posts"];
   postLength?: PostLength;
 }): GenerationContext {
   if (params.selectedPatterns.length === 0) {
@@ -29,6 +30,7 @@ export function buildGenerationContext(params: {
     selected_patterns: params.selectedPatterns,
     research: params.research,
     relevant_voice_examples: params.relevantVoiceExamples,
+    model_posts: params.modelPosts ?? [],
     post_length: params.postLength ?? "medium"
   };
 }

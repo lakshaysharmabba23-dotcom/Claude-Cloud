@@ -4,7 +4,7 @@ import { buildGenerationContext } from "./context";
 import { PostGenerator } from "./generator";
 import { critiquePost } from "@/lib/critic/critic";
 import { summarizeVoiceProfile } from "@/lib/voice/analyze";
-import { listPatterns, listVoiceExamples, getDefaultVoiceProfile } from "@/lib/data/repository";
+import { listPatterns, listVoiceExamples, getDefaultVoiceProfile, listSourcePosts } from "@/lib/data/repository";
 import type { GeneratedPost, ResearchDocument, VoiceProfile, CriticResult, PostLength } from "@/lib/types/schemas";
 
 export interface StudioRequest {
@@ -107,6 +107,17 @@ export async function runStudioPipeline(request: StudioRequest): Promise<StudioR
       ? rankedVoiceExamples.map((r) => r.item.content)
       : voiceExamples.slice(0, 3).map((e) => e.content);
 
+  // 3b. Model posts: the real top-engagement posts from the tracked creators.
+  // The generator studies their hooks, rhythm and structure (never copies).
+  const modelPosts = (await listSourcePosts())
+    .map((p) => {
+      const e = (p.engagement_data ?? {}) as { likes?: number; comments?: number };
+      return { author: p.author ?? "creator", content: p.content, likes: e.likes ?? 0, comments: e.comments ?? 0 };
+    })
+    .filter((p) => p.content && p.content.length > 200)
+    .sort((a, b) => b.likes + b.comments * 3 - (a.likes + a.comments * 3))
+    .slice(0, 3);
+
   // 4. Build the structured generation context and generate.
   const context = buildGenerationContext({
     topic: request.topic,
@@ -116,6 +127,7 @@ export async function runStudioPipeline(request: StudioRequest): Promise<StudioR
     selectedPatterns,
     research,
     relevantVoiceExamples,
+    modelPosts,
     postLength: request.postLength
   });
 
@@ -130,7 +142,7 @@ export async function runStudioPipeline(request: StudioRequest): Promise<StudioR
     objective: request.objective,
     voiceProfileSummary: summarizeVoiceProfile(voiceProfile),
     selectedPatternName: selectedPatterns[0]?.name ?? "unspecified",
-    sourceTexts: research.map((r) => r.content)
+    sourceTexts: [...research.map((r) => r.content), ...modelPosts.map((m) => m.content)]
   });
 
   return {

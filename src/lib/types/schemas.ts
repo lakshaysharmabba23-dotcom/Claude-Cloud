@@ -169,6 +169,10 @@ export const generationContextSchema = z.object({
   selected_patterns: z.array(contentPatternSchema).min(1),
   research: z.array(researchDocumentSchema),
   relevant_voice_examples: z.array(z.string()).default([]),
+  /** Real high-engagement posts from the tracked creators, shown to the model as structure/style models (never to copy). */
+  model_posts: z
+    .array(z.object({ author: z.string(), content: z.string(), likes: z.number(), comments: z.number() }))
+    .default([]),
   post_length: postLengthSchema
 });
 export type GenerationContext = z.infer<typeof generationContextSchema>;

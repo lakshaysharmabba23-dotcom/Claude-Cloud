@@ -42,11 +42,21 @@ export class PostGenerator {
       ? context.relevant_voice_examples.map((ex, i) => `[V${i + 1}] ${ex}`).join("\n\n")
       : "No prior voice examples were retrieved.";
 
+    const modelPostsBlock = context.model_posts.length
+      ? context.model_posts
+          .map(
+            (m, i) =>
+              `[M${i + 1}] ${m.author} (${m.likes} likes, ${m.comments} comments)\n${m.content.slice(0, 1400)}`
+          )
+          .join("\n\n---\n\n")
+      : "";
+
     const system = [
       "You write an original LinkedIn post grounded in the given research and one selected content pattern.",
       "You must SYNTHESIZE, not copy: do not lift sentences verbatim from the research block.",
       "Only reference facts/examples present in the research block - never invent a statistic, study, or example.",
       "Match the target voice profile as closely as possible.",
+      "Model the structure and craft of the high-engagement creator posts provided: a hook that lands in the first line, one idea per short line with white space, concrete numbers or specifics, plain words, and a closing line that invites a reply. Learn their rhythm and structure - never reuse their sentences or facts.",
       "If you use a fact from the research, cite it inline as e.g. [R1] so evidence_used can reference it."
     ].join(" ");
 
@@ -64,6 +74,13 @@ export class PostGenerator {
       "Research available to ground this post:",
       researchBlock,
       "",
+      ...(modelPostsBlock
+        ? [
+            "Top-performing posts by real GTM creators (study WHY they work - hook, line breaks, specificity, ending - then write something new; do not copy wording or claim their facts):",
+            modelPostsBlock,
+            ""
+          ]
+        : []),
       "Reference voice examples (match this writer's style, do not copy content):",
       voiceExamplesBlock,
       "",
