@@ -32,7 +32,7 @@ export const COPYWRITING_PROMPT = [
   "COPYWRITING RULES (follow strictly):",
   "1. Write like a smart person texting a friend who works in the same field. Spoken English, not essay English.",
   "2. Use simple, everyday words. A 12-year-old should follow every sentence. If a plain word exists, use it (use, not utilize; help, not facilitate; start, not initiate).",
-  "3. Short sentences. Most under 12 words. One idea per line. Leave a blank line between ideas.",
+  "3. Match the line length to the idea. If one short line is enough for the reader to get it, use one line. If it needs more to make sense, use two or three lines (or a short paragraph) to explain it properly. Do not chop a real explanation into one-liners just for style, and do not pad a simple point. Mix it up like a real person would: a short punchy line, then a few lines of explanation, then short again. Keep every sentence plain and easy to read.",
   "4. The first line is the hook. It must make someone stop scrolling: a specific number, a blunt claim, or a small story. No warm-up, no 'In today's world'.",
   "5. Be concrete. Prefer a real number, a real example or a real moment over a general statement. If you do not have a real fact, say less instead of making one up.",
   "6. Say what happened and what you learned. Show, do not preach. No lectures, no motivational tone.",
@@ -77,7 +77,7 @@ export class PostGenerator {
       "You must SYNTHESIZE, not copy: do not lift sentences verbatim from the research block.",
       "Only reference facts/examples present in the research block - never invent a statistic, study, or example.",
       "Match the target voice profile as closely as possible.",
-      "Model the structure and craft of the high-engagement creator posts provided: a hook that lands in the first line, one idea per short line with white space, concrete numbers or specifics, plain words, and a closing line that invites a reply. Learn their rhythm and structure - never reuse their sentences or facts.",
+      "Model the structure and craft of the high-engagement creator posts provided: a hook that lands in the first line, line breaks that fit the idea (a one-liner where one line is enough, a few lines where it needs explaining), concrete numbers or specifics, plain words, and a closing line that invites a reply. Learn their rhythm and structure - never reuse their sentences or facts.",
       "If you use a fact from the research, cite it inline as e.g. [R1] so evidence_used can reference it."
     ].join(" ");
 
