@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getDraft, updateDraft } from "@/lib/data/repository";
+import { canEdit } from "@/lib/data/draft-rules";
 
+// Only the text can be edited here. Status changes go through the approve /
+// reject routes, which enforce the allowed transitions.
 const patchSchema = z.object({
-  content: z.string().min(1).optional(),
-  status: z.enum(["draft", "critiqued", "approved", "rejected"]).optional()
+  content: z.string().min(1)
 });
 
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
@@ -22,7 +24,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 
   try {
-    const draft = await updateDraft(params.id, parsed.data);
+    const current = await getDraft(params.id);
+    if (!current) return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+    if (!canEdit(current.status)) {
+      return NextResponse.json({ error: `A ${current.status} draft can no longer be edited.` }, { status: 409 });
+    }
+    const draft = await updateDraft(params.id, { content: parsed.data.content });
     return NextResponse.json({ draft });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 404 });

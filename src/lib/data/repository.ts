@@ -291,12 +291,26 @@ export async function updateDraft(id: string, patch: Partial<Draft>) {
 // Publish record (always human-triggered - never called automatically)
 // -----------------------------------------------------------------------------
 
+export async function findPublishedByDraft(draftId: string) {
+  const db = getSupabaseClientIfConfigured();
+  if (db) {
+    const { data, error } = await db.from("published_posts").select("*").eq("draft_id", draftId).limit(1).maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+  return memoryStore.publishedPosts.find((p) => p.draft_id === draftId) ?? null;
+}
+
 export async function publishDraft(draftId: string) {
   const draft = await getDraft(draftId);
   if (!draft) throw new Error(`Draft ${draftId} not found`);
   if (draft.status !== "approved") {
     throw new Error(`Draft ${draftId} must be approved by a human before it can be recorded as published.`);
   }
+
+  // Idempotent: a draft is recorded as published at most once.
+  const existing = await findPublishedByDraft(draftId);
+  if (existing) return existing;
 
   const db = getSupabaseClientIfConfigured();
   const record = {
@@ -313,7 +327,15 @@ export async function publishDraft(draftId: string) {
       .insert({ draft_id: draftId, content: draft.content })
       .select()
       .single();
-    if (error) throw error;
+    if (error) {
+      // Two simultaneous approvals: the unique index on draft_id rejected the
+      // second insert, so return the one that won.
+      if ((error as { code?: string }).code === "23505") {
+        const winner = await findPublishedByDraft(draftId);
+        if (winner) return winner;
+      }
+      throw error;
+    }
     return data;
   }
 
@@ -412,8 +434,15 @@ export async function recomputePatternPerformance(): Promise<PatternPerformanceR
     });
 
     const rows = aggregatePatternPerformance(observations.filter((o) => o.patternId));
-    await db.from("pattern_performance").delete().neq("pattern_id", "");
-    if (rows.length) await db.from("pattern_performance").insert(rows);
+    // Clear the old derived rows. The filter must be a valid uuid comparison
+    // (comparing the uuid column to "" is rejected by Postgres), and every
+    // error is checked so a failed rebuild can't silently leave duplicates.
+    const { error: deleteError } = await db.from("pattern_performance").delete().not("id", "is", null);
+    if (deleteError) throw new Error(`Could not clear pattern_performance: ${deleteError.message}`);
+    if (rows.length) {
+      const { error: insertError } = await db.from("pattern_performance").insert(rows);
+      if (insertError) throw new Error(`Could not save pattern_performance: ${insertError.message}`);
+    }
     return rows;
   }
 
