@@ -25,7 +25,21 @@ const GENERIC_PHRASES = [
   "revolutionize",
   "seamless",
   "cutting-edge",
-  "paradigm shift"
+  "paradigm shift",
+  "leverage",
+  "unlock",
+  "delve",
+  "robust",
+  "ecosystem",
+  "landscape",
+  "synergy",
+  "empower",
+  "elevate",
+  "streamline",
+  "holistic",
+  "utilize",
+  "let that sink in",
+  "here's the thing"
 ];
 
 const ABSOLUTE_CLAIM_MARKERS = [

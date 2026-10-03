@@ -23,6 +23,25 @@ const LENGTH_SPEC: Record<GenerationContext["post_length"], { instruction: strin
   }
 };
 
+/**
+ * House copywriting rules. These apply on top of the pattern/voice/model-post
+ * guidance and exist to stop "AI slop": the creator posts this project was
+ * built from are all short, plain and concrete, so the output must be too.
+ */
+export const COPYWRITING_PROMPT = [
+  "COPYWRITING RULES (follow strictly):",
+  "1. Write like a smart person texting a friend who works in the same field. Spoken English, not essay English.",
+  "2. Use simple, everyday words. A 12-year-old should follow every sentence. If a plain word exists, use it (use, not utilize; help, not facilitate; start, not initiate).",
+  "3. Short sentences. Most under 12 words. One idea per line. Leave a blank line between ideas.",
+  "4. The first line is the hook. It must make someone stop scrolling: a specific number, a blunt claim, or a small story. No warm-up, no 'In today's world'.",
+  "5. Be concrete. Prefer a real number, a real example or a real moment over a general statement. If you do not have a real fact, say less instead of making one up.",
+  "6. Say what happened and what you learned. Show, do not preach. No lectures, no motivational tone.",
+  "7. Never use these words or styles: leverage, unlock, delve, game-changer, revolutionize, seamless, cutting-edge, robust, ecosystem, landscape, journey, synergy, empower, elevate, streamline, paradigm, holistic, 'it's not just X, it's Y', 'Here's the thing', 'Let that sink in', rhetorical triplets for rhythm, em dashes, emojis, hashtags.",
+  "8. No jargon unless the audience uses that exact word daily. If you must use a term, make the meaning obvious from the sentence.",
+  "9. Do not summarize at the end and do not repeat the hook. End with one specific, easy question a real reader could answer in a sentence.",
+  "10. Before answering, reread the post and cut every word that does not earn its place. If a line sounds like a LinkedIn guru or a press release, rewrite it plainly."
+].join("\n");
+
 export class PostGenerator {
   async generate(context: GenerationContext): Promise<GeneratedPost> {
     const ai = getAIProvider();
@@ -52,6 +71,8 @@ export class PostGenerator {
       : "";
 
     const system = [
+      COPYWRITING_PROMPT,
+      "",
       "You write an original LinkedIn post grounded in the given research and one selected content pattern.",
       "You must SYNTHESIZE, not copy: do not lift sentences verbatim from the research block.",
       "Only reference facts/examples present in the research block - never invent a statistic, study, or example.",
